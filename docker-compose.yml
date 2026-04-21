@@ -1,0 +1,48 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: michelin-app
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://michelin:michelin@db:5432/michelin_hackathon
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: sh -c "npx prisma generate && npx prisma db push && npx prisma db seed && npm run dev"
+
+  db:
+    image: postgres:16-alpine
+    container_name: michelin-db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: michelin
+      POSTGRES_PASSWORD: michelin
+      POSTGRES_DB: michelin_hackathon
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U michelin -d michelin_hackathon"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  adminer:
+    image: adminer:latest
+    container_name: michelin-adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:

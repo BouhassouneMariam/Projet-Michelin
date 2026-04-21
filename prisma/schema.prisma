@@ -1,0 +1,192 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum BudgetLevel {
+  LOW
+  MEDIUM
+  HIGH
+  LUXURY
+}
+
+enum MichelinAward {
+  SELECTED
+  BIB_GOURMAND
+  ONE_STAR
+  TWO_STARS
+  THREE_STARS
+  GREEN_STAR
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
+}
+
+enum TagType {
+  MOOD
+  VIBE
+  CUISINE
+  OCCASION
+  FEATURE
+}
+
+model User {
+  id           String  @id @default(cuid())
+  name         String
+  username     String  @unique
+  avatarUrl    String?
+  bio          String?
+  isPublic     Boolean @default(true)
+  isAmbassador Boolean @default(false)
+
+  collections Collection[]
+  likes       RestaurantLike[]
+  badges      UserBadge[]
+
+  sentFriendships     Friendship[] @relation("FriendshipRequester")
+  receivedFriendships Friendship[] @relation("FriendshipReceiver")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Restaurant {
+  id          String         @id @default(cuid())
+  name        String
+  description String?
+  city        String
+  district    String?
+  country     String?
+  address     String?
+  latitude    Float?
+  longitude   Float?
+  imageUrl    String?
+  cuisine     String?
+  chefName    String?
+  priceLabel  String?
+  budget      BudgetLevel
+  award       MichelinAward @default(SELECTED)
+  source      String?
+  sourceUrl   String?
+  externalId  String?        @unique
+
+  tags            RestaurantTag[]
+  collectionItems CollectionItem[]
+  likes           RestaurantLike[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([city])
+  @@index([budget])
+  @@index([award])
+}
+
+model Tag {
+  id   String  @id @default(cuid())
+  name String
+  slug String  @unique
+  type TagType
+
+  restaurants RestaurantTag[]
+}
+
+model RestaurantTag {
+  restaurantId String
+  tagId        String
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  tag        Tag        @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([restaurantId, tagId])
+}
+
+model Collection {
+  id          String  @id @default(cuid())
+  title       String
+  description String?
+  coverUrl    String?
+  isPublic    Boolean @default(true)
+
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  items CollectionItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId])
+}
+
+model CollectionItem {
+  id           String  @id @default(cuid())
+  collectionId String
+  restaurantId String
+  note         String?
+
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([collectionId, restaurantId])
+}
+
+model RestaurantLike {
+  id           String @id @default(cuid())
+  userId       String
+  restaurantId String
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, restaurantId])
+  @@index([restaurantId])
+}
+
+model Friendship {
+  id          String           @id @default(cuid())
+  requesterId String
+  receiverId  String
+  status      FriendshipStatus @default(PENDING)
+
+  requester User @relation("FriendshipRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  receiver  User @relation("FriendshipReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([requesterId, receiverId])
+  @@index([receiverId])
+}
+
+model Badge {
+  id          String  @id @default(cuid())
+  name        String
+  slug        String  @unique
+  description String?
+  icon        String?
+
+  users UserBadge[]
+}
+
+model UserBadge {
+  userId  String
+  badgeId String
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  earnedAt DateTime @default(now())
+
+  @@id([userId, badgeId])
+}
