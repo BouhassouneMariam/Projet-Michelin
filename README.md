@@ -73,16 +73,19 @@ data/seed-restaurants.ts
 data/seed-users.ts
 data/seed-collections.ts
 data/michelin/raw/michelin-restaurants-cleaned.csv
+data/michelin/raw/michelin-my-maps.csv
 ```
 
 The Michelin dataset import is now wired into:
 
 ```txt
 data/michelin/import-michelin.ts
+data/michelin/import-michelin-map.ts
 prisma/seed.ts
 ```
 
 It imports the cleaned CSV from the joseanmarsol dataset as local seed data,
 creates restaurant records, maps Michelin stars to app awards, and generates
-cuisine/narrative tags for recommendations. Keep this as a seed/import step,
-not a live dependency during the demo.
+cuisine/narrative tags for recommendations. The map import uses a second
+geolocated Michelin dataset for major demo cities so `/map` can render real
+pins. Keep this as a seed/import step, not a live dependency during the demo.
