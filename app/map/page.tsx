@@ -2,7 +2,7 @@ import { MapView } from "@/features/map/MapView";
 import { listRestaurants } from "@/features/restaurants/restaurant.queries";
 
 export default async function MapPage() {
-  const restaurants = await listRestaurants();
+  const restaurants = await listRestaurants({ mapReady: true, limit: 200 });
 
   return (
     <main className="px-5 pb-8 pt-6">

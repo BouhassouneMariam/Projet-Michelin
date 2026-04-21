@@ -1,4 +1,4 @@
-import { BudgetLevel, Prisma } from "@prisma/client";
+import { BudgetLevel, MichelinAward, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import type { RestaurantDto } from "@/types/api";
 
@@ -53,10 +53,19 @@ function isBudget(value: string): value is BudgetLevel {
   return Object.values(BudgetLevel).includes(value as BudgetLevel);
 }
 
+function isAward(value: string): value is MichelinAward {
+  return Object.values(MichelinAward).includes(value as MichelinAward);
+}
+
 export async function listRestaurants(filters: {
   city?: string;
+  country?: string;
   budget?: string;
+  award?: string;
   tag?: string;
+  search?: string;
+  limit?: number;
+  mapReady?: boolean;
 } = {}) {
   const where: Prisma.RestaurantWhereInput = {};
 
@@ -64,8 +73,30 @@ export async function listRestaurants(filters: {
     where.city = { equals: filters.city, mode: "insensitive" };
   }
 
+  if (filters.country) {
+    where.country = { equals: filters.country, mode: "insensitive" };
+  }
+
   if (filters.budget && isBudget(filters.budget)) {
     where.budget = filters.budget;
+  }
+
+  if (filters.award && isAward(filters.award)) {
+    where.award = filters.award;
+  }
+
+  if (filters.search) {
+    where.OR = [
+      { name: { contains: filters.search, mode: "insensitive" } },
+      { city: { contains: filters.search, mode: "insensitive" } },
+      { country: { contains: filters.search, mode: "insensitive" } },
+      { cuisine: { contains: filters.search, mode: "insensitive" } }
+    ];
+  }
+
+  if (filters.mapReady) {
+    where.latitude = { not: null };
+    where.longitude = { not: null };
   }
 
   if (filters.tag) {
@@ -81,7 +112,8 @@ export async function listRestaurants(filters: {
   const restaurants = await prisma.restaurant.findMany({
     where,
     include: restaurantInclude,
-    orderBy: [{ award: "desc" }, { name: "asc" }]
+    orderBy: [{ award: "desc" }, { name: "asc" }],
+    take: filters.limit
   });
 
   return restaurants.map(toRestaurantDto);
