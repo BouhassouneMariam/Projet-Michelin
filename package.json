@@ -10,7 +10,8 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "prisma db seed",
-    "db:reset": "prisma migrate reset --force"
+    "db:reset": "prisma migrate reset --force",
+    "michelin:images": "tsx data/michelin/enrich-michelin-images.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
