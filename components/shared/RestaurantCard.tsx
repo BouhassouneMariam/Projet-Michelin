@@ -21,6 +21,7 @@ export function RestaurantCard({
   const [authPromptVisible, setAuthPromptVisible] = useState(false);
   const [checkingCollections, setCheckingCollections] = useState(false);
   const promptTimerRef = useRef<number | null>(null);
+  const [isLogged,setIsLogged] =useState<boolean>(false);
 
   useEffect(() => {
     return () => {
@@ -30,6 +31,26 @@ export function RestaurantCard({
     };
   }, []);
 
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const response = await fetch("/api/collections");
+
+        if (response.status === 401) {
+          setIsLogged(false);
+          return;
+        }
+
+        if (response.ok) {
+          setIsLogged(true);
+        }
+      } catch {
+        setIsLogged(false);
+      }
+    }
+
+    checkAuth();
+  }, []);
   function showAuthPrompt() {
     setAuthPromptVisible(true);
 
@@ -133,8 +154,9 @@ export function RestaurantCard({
             initialLiked={initialLiked}
             initialCount={restaurant.likesCount}
             onAuthRequired={showAuthPrompt}
+            isLogged={isLogged}
           />
-          <button
+          {isLogged &&<button
             onClick={openCollectionModal}
             disabled={checkingCollections}
             className="inline-flex h-10 items-center gap-2 rounded-lg bg-rouge px-3 text-sm font-semibold text-white transition hover:bg-[#9d2626] disabled:opacity-70"
@@ -145,7 +167,7 @@ export function RestaurantCard({
               <BookmarkPlus size={16} />
             )}
             Save
-          </button>
+          </button>}
         </div>
       </div>
 
@@ -162,7 +184,7 @@ export function RestaurantCard({
         </div>
       ) : null}
 
-      <AddToCollectionModal
+       <AddToCollectionModal
         restaurantId={restaurant.id}
         open={collectionModalOpen}
         onClose={() => setCollectionModalOpen(false)}

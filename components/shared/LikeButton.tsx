@@ -7,12 +7,14 @@ export function LikeButton({
   restaurantId,
   initialLiked = false,
   initialCount = 0,
-  onAuthRequired
+  onAuthRequired,
+  isLogged =false
 }: {
   restaurantId: string;
   initialLiked?: boolean;
   initialCount?: number;
   onAuthRequired?: () => void;
+  isLogged: boolean;
 }) {
   const [liked, setLiked] = useState(initialLiked);
   const [count, setCount] = useState(initialCount);
@@ -58,7 +60,7 @@ export function LikeButton({
         e.stopPropagation();
         toggle();
       }}
-      disabled={busy}
+      disabled={busy || !isLogged}
       className="group/like inline-flex items-center gap-1.5 text-sm font-semibold transition-colors"
       aria-label={liked ? "Retirer le like" : "Liker ce restaurant"}
     >
