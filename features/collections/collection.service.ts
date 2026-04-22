@@ -107,6 +107,7 @@ export async function createCollection(
     data: {
       title: input.title,
       description: input.description,
+      coverUrl: input.coverUrl || null,
       isPublic: input.isPublic ?? true,
       ownerId: userId
     },
@@ -135,6 +136,7 @@ export async function updateCollection(
     data: {
       ...(input.title !== undefined && { title: input.title }),
       ...(input.description !== undefined && { description: input.description }),
+      ...(input.coverUrl !== undefined && { coverUrl: input.coverUrl || null }),
       ...(input.isPublic !== undefined && { isPublic: input.isPublic })
     },
     include: collectionInclude

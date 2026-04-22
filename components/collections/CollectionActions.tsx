@@ -8,11 +8,13 @@ export function CollectionActions({
   collectionId,
   initialTitle,
   initialDescription,
+  initialCoverUrl,
   initialIsPublic
 }: {
   collectionId: string;
   initialTitle: string;
   initialDescription: string | null;
+  initialCoverUrl: string | null;
   initialIsPublic: boolean;
 }) {
   const [open, setOpen] = useState(false);
@@ -23,6 +25,7 @@ export function CollectionActions({
   // Edit form state
   const [title, setTitle] = useState(initialTitle);
   const [description, setDescription] = useState(initialDescription || "");
+  const [coverUrl, setCoverUrl] = useState(initialCoverUrl || "");
   const [isPublic, setIsPublic] = useState(initialIsPublic);
 
   async function handleDelete() {
@@ -54,6 +57,7 @@ export function CollectionActions({
         body: JSON.stringify({
           title,
           description: description || null,
+          coverUrl: coverUrl || null,
           isPublic
         })
       });
@@ -140,6 +144,17 @@ export function CollectionActions({
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   className="h-24 w-full resize-none rounded-xl border-none bg-white p-3.5 text-ink ring-1 ring-inset ring-ink/10 focus:ring-2 focus:ring-inset focus:ring-rouge"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-ink/70">Image (URL)</label>
+                <input
+                  type="url"
+                  value={coverUrl}
+                  onChange={(e) => setCoverUrl(e.target.value)}
+                  className="w-full rounded-xl border-none bg-white p-3.5 text-ink ring-1 ring-inset ring-ink/10 focus:ring-2 focus:ring-inset focus:ring-rouge"
+                  placeholder="https://..."
                 />
               </div>
 

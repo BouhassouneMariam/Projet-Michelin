@@ -30,7 +30,7 @@ export default async function CollectionDetailPage({
   const likedSet = new Set(likedIds);
   
   const isOwner = params.id !== "__liked__" && collection.owner.id === DEMO_USER_ID;
-  const firstImage = collection.items[0]?.restaurant.imageUrl;
+  const firstImage = collection.coverUrl || collection.items[0]?.restaurant.imageUrl;
 
   return (
     <main className="pb-8">
@@ -61,6 +61,7 @@ export default async function CollectionDetailPage({
                 collectionId={collection.id}
                 initialTitle={collection.title}
                 initialDescription={collection.description}
+                initialCoverUrl={collection.coverUrl}
                 initialIsPublic={collection.isPublic}
               />
             )}

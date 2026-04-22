@@ -12,7 +12,7 @@ export function CollectionCard({
   collection: CollectionDto;
   index?: number;
 }) {
-  const firstImage = collection.items[0]?.restaurant.imageUrl;
+  const firstImage = collection.coverUrl || collection.items[0]?.restaurant.imageUrl;
   const restaurantCount = collection.items.length;
 
   return (

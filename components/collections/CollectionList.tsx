@@ -16,6 +16,7 @@ export function CollectionList({
   const [formData, setFormData] = useState({
     title: "",
     description: "",
+    coverUrl: "",
     isPublic: true
   });
   const [creating, setCreating] = useState(false);
@@ -37,7 +38,7 @@ export function CollectionList({
       if (response.ok) {
         const { collection } = await response.json();
         setCollections((prev) => [collection, ...prev]);
-        setFormData({ title: "", description: "", isPublic: true });
+        setFormData({ title: "", description: "", coverUrl: "", isPublic: true });
         setShowForm(false);
       }
     } finally {
@@ -104,6 +105,25 @@ export function CollectionList({
                   }
                   placeholder="Un petit mot sur cette collection..."
                   className="w-full resize-none rounded-lg border border-ink/10 bg-porcelain px-3.5 py-2.5 text-sm text-ink placeholder:text-ink/30 focus:border-rouge focus:outline-none focus:ring-2 focus:ring-rouge/20"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="collection-cover"
+                  className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-ink/50"
+                >
+                  Image (URL)
+                </label>
+                <input
+                  id="collection-cover"
+                  type="url"
+                  value={formData.coverUrl}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, coverUrl: e.target.value }))
+                  }
+                  placeholder="https://..."
+                  className="w-full rounded-lg border border-ink/10 bg-porcelain px-3.5 py-2.5 text-sm text-ink placeholder:text-ink/30 focus:border-rouge focus:outline-none focus:ring-2 focus:ring-rouge/20"
                 />
               </div>
 

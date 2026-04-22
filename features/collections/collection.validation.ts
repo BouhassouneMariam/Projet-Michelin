@@ -3,12 +3,14 @@ import { z } from "zod";
 export const createCollectionSchema = z.object({
   title: z.string().min(2, "Title must be at least 2 characters"),
   description: z.string().optional(),
+  coverUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
   isPublic: z.boolean().optional()
 });
 
 export const updateCollectionSchema = z.object({
   title: z.string().min(2, "Title must be at least 2 characters").optional(),
   description: z.string().optional(),
+  coverUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
   isPublic: z.boolean().optional()
 });
 
