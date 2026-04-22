@@ -4,6 +4,7 @@ import {
 } from "@prisma/client";
 import { seedCollections } from "../data/seed-collections";
 import { seedMichelinRestaurants } from "../data/michelin/import-michelin";
+import { seedMichelinMapRestaurants } from "../data/michelin/import-michelin-map";
 import { seedRestaurants } from "../data/seed-restaurants";
 import { DEMO_USER_ID, seedUsers } from "../data/seed-users";
 
@@ -152,6 +153,7 @@ async function main() {
   }
 
   await seedMichelinRestaurants(prisma);
+  await seedMichelinMapRestaurants(prisma);
 
   const badges = [
     {
