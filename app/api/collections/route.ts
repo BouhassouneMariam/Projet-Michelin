@@ -1,17 +1,13 @@
-import { z } from "zod";
-import { prisma } from "@/lib/prisma";
 import { badRequest, ok } from "@/lib/api-response";
 import { DEMO_USER_ID } from "@/lib/demo-user";
-import { listCollections } from "@/features/collections/collection.queries";
-
-const createCollectionSchema = z.object({
-  title: z.string().min(2),
-  description: z.string().optional(),
-  isPublic: z.boolean().optional()
-});
+import { createCollectionSchema } from "@/features/collections/collection.validation";
+import {
+  listUserCollections,
+  createCollection
+} from "@/features/collections/collection.service";
 
 export async function GET() {
-  const collections = await listCollections();
+  const collections = await listUserCollections(DEMO_USER_ID);
 
   return ok({ collections });
 }
@@ -24,14 +20,7 @@ export async function POST(request: Request) {
     return badRequest("Invalid collection payload");
   }
 
-  const collection = await prisma.collection.create({
-    data: {
-      title: parsed.data.title,
-      description: parsed.data.description,
-      isPublic: parsed.data.isPublic ?? true,
-      ownerId: DEMO_USER_ID
-    }
-  });
+  const collection = await createCollection(DEMO_USER_ID, parsed.data);
 
   return ok({ collection }, { status: 201 });
 }

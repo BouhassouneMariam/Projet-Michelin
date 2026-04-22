@@ -11,3 +11,11 @@ export function badRequest(message: string) {
 export function notFound(message = "Not found") {
   return NextResponse.json({ error: message }, { status: 404 });
 }
+
+export function conflict(message: string) {
+  return NextResponse.json({ error: message }, { status: 409 });
+}
+
+export function forbidden(message = "Forbidden") {
+  return NextResponse.json({ error: message }, { status: 403 });
+}

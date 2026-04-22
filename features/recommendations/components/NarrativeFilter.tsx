@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Loader2, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { RestaurantCard } from "@/components/shared/RestaurantCard";
 import type { RestaurantDto } from "@/types/api";
 import { cn } from "@/lib/cn";
+import { DEMO_USER_ID } from "@/lib/demo-user";
 
 const occasions = [
   { label: "Date", value: "date" },
@@ -37,6 +38,14 @@ export function NarrativeFilter() {
   const [title, setTitle] = useState("Your Michelin shortlist appears here");
   const [restaurants, setRestaurants] = useState<RestaurantDto[]>([]);
   const [loading, setLoading] = useState(false);
+  const [likedSet, setLikedSet] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    fetch(`/api/users/${DEMO_USER_ID}/likes`)
+      .then((r) => r.json())
+      .then((data) => setLikedSet(new Set(data.likedIds)))
+      .catch(() => {});
+  }, []);
 
   const payload = useMemo(
     () => ({
@@ -139,7 +148,7 @@ export function NarrativeFilter() {
         ) : (
           <div className="grid gap-4 xl:grid-cols-2">
             {restaurants.map((restaurant) => (
-              <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+              <RestaurantCard key={restaurant.id} restaurant={restaurant} initialLiked={likedSet.has(restaurant.id)} />
             ))}
           </div>
         )}

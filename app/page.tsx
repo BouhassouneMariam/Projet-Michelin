@@ -4,9 +4,15 @@ import { HeroSceneClient } from "@/components/3d/HeroSceneClient";
 import { RestaurantCard } from "@/components/shared/RestaurantCard";
 import { BadgePill } from "@/components/shared/BadgePill";
 import { listRestaurants } from "@/features/restaurants/restaurant.queries";
+import { getUserLikedRestaurantIds } from "@/features/social/social.service";
+import { DEMO_USER_ID } from "@/lib/demo-user";
 
 export default async function HomePage() {
-  const restaurants = await listRestaurants({ city: "Paris" });
+  const [restaurants, likedIds] = await Promise.all([
+    listRestaurants({ city: "Paris" }),
+    getUserLikedRestaurantIds(DEMO_USER_ID)
+  ]);
+  const likedSet = new Set(likedIds);
   const highlights = restaurants.slice(0, 3);
 
   return (
@@ -67,7 +73,7 @@ export default async function HomePage() {
 
         <div className="grid gap-4 md:grid-cols-3">
           {highlights.map((restaurant) => (
-            <RestaurantCard key={restaurant.id} restaurant={restaurant} compact />
+            <RestaurantCard key={restaurant.id} restaurant={restaurant} compact initialLiked={likedSet.has(restaurant.id)} />
           ))}
         </div>
       </section>
