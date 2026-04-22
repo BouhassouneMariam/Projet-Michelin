@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { FormEvent, useMemo, useState } from "react";
 import { Lock, UserRound } from "lucide-react";
 import { AuthFormCard } from "@/features/users/components/AuthFormCard";
@@ -22,7 +21,6 @@ type LoginResponse = {
 };
 
 export function LoginForm() {
-  const router = useRouter();
   const { values, register } = useAuthForm<LoginFormValues>({
     username: "",
     password: ""
@@ -63,8 +61,7 @@ export function LoginForm() {
         return;
       }
 
-      router.push("/discover");
-      router.refresh();
+      window.location.assign("/discover");
     } catch {
       setErrorMessage("Le serveur est injoignable pour le moment.");
     } finally {

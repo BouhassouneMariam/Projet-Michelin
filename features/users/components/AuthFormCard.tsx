@@ -54,7 +54,7 @@ export function AuthFormCard({
 
       <p className="text-center text-sm text-ink/55">
         {switchText}{" "}
-        <Link href={switchHref} className="font-semibold text-rouge">
+        <Link href={switchHref} prefetch={false} className="font-semibold text-rouge">
           {switchLabel}
         </Link>
       </p>

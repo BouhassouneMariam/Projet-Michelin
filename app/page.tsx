@@ -4,8 +4,11 @@ import { HeroSceneClient } from "@/components/3d/HeroSceneClient";
 import { RestaurantCard } from "@/components/shared/RestaurantCard";
 import { BadgePill } from "@/components/shared/BadgePill";
 import { listRestaurants } from "@/features/restaurants/restaurant.queries";
+import {getCurrentUserId} from "@/lib/auth";
+import {redirect} from "next/navigation";
 
 export default async function HomePage() {
+
   const restaurants = await listRestaurants({ city: "Paris" });
   const highlights = restaurants.slice(0, 3);
 
