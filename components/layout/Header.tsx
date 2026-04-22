@@ -1,6 +1,10 @@
 import Link from "next/link";
+import { getCurrentUserId } from "@/lib/auth";
+import { LogoutButton } from "@/components/layout/LogoutButton";
 
 export function Header() {
+  const userId = getCurrentUserId();
+
   return (
     <header className="relative z-40 bg-porcelain/80 px-5 py-4 md:px-8">
       <div className="mx-auto flex w-full max-w-[1760px] items-center justify-between gap-4">
@@ -15,16 +19,33 @@ export function Header() {
               <path d="M12 2l2.6 6.9L22 10l-5.5 4.7L18.2 22 12 18l-6.2 4 1.7-7.3L2 10l7.4-1.1z" />
             </svg>
           </span>
+
           <span className="truncate text-lg font-medium tracking-normal text-ink">
             Le Guide Michelin
           </span>
         </Link>
-        <Link
-          href="/discover"
-          className="inline-flex h-10 items-center rounded px-3 text-xs font-semibold uppercase tracking-normal text-ink transition hover:text-rouge focus:outline-none focus:ring-2 focus:ring-rouge focus:ring-offset-2"
-        >
-          Decouvrir
-        </Link>
+
+        <div className="flex items-center gap-2">
+          <Link
+            href="/discover"
+            prefetch={false}
+            className="inline-flex h-10 items-center rounded px-3 text-xs font-semibold uppercase tracking-normal text-ink transition hover:text-rouge focus:outline-none focus:ring-2 focus:ring-rouge focus:ring-offset-2"
+          >
+            Decouvrir
+          </Link>
+
+          {userId ? (
+            <LogoutButton />
+          ) : (
+            <Link
+              href="/login"
+              prefetch={false}
+              className="inline-flex h-10 items-center rounded bg-rouge px-3 text-xs font-semibold uppercase tracking-normal text-white transition hover:bg-[#9d2626]"
+            >
+              Login
+            </Link>
+          )}
+        </div>
       </div>
     </header>
   );

@@ -44,7 +44,8 @@ const questions: Question[] = [
     key: "occasion",
     label: "Occasion",
     question: "C'est pour quelle occasion ?",
-    intro: "Tournons la premiere page. Le Guide commence par le moment que vous voulez vivre.",
+    intro:
+      "Tournons la premiere page. Le Guide commence par le moment que vous voulez vivre.",
     options: [
       {
         value: "date",
@@ -76,7 +77,8 @@ const questions: Question[] = [
     key: "vibe",
     label: "Ambiance",
     question: "Quelle ambiance vous attire ?",
-    intro: "Le decor compte autant que l'assiette. Choisissez le ton de la soiree.",
+    intro:
+      "Le decor compte autant que l'assiette. Choisissez le ton de la soiree.",
     options: [
       {
         value: "cosy",
@@ -134,7 +136,8 @@ const questions: Question[] = [
     key: "city",
     label: "Ville",
     question: "Dans quelle ville chercher ?",
-    intro: "Derniere page. La recommandation partira d'une vraie base Michelin geolocalisee.",
+    intro:
+      "Derniere page. La recommandation partira d'une vraie base Michelin geolocalisee.",
     options: [
       {
         value: "Paris",
@@ -323,6 +326,7 @@ export function NarrativeFilter({
           >
             <ArrowLeft size={18} />
           </button>
+
           <div className="h-1 flex-1 overflow-hidden rounded-full bg-[#DDDDDD]">
             <motion.div
               className="h-full bg-rouge"
@@ -331,6 +335,7 @@ export function NarrativeFilter({
               transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
             />
           </div>
+
           <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#757575]">
             {step + 1}/{questions.length}
           </span>
@@ -338,9 +343,13 @@ export function NarrativeFilter({
       ) : null}
 
       <section
-          className={cn(
-            "relative px-0",
-          embedded ? "flex min-h-0 flex-1 flex-col overflow-hidden pb-0" : immersive ? "pb-0" : "pb-10"
+        className={cn(
+          "relative px-0",
+          embedded
+            ? "flex min-h-0 flex-1 flex-col overflow-hidden pb-0"
+            : immersive
+              ? "pb-0"
+              : "pb-10"
         )}
         style={{ perspective: "2400px" }}
       >
@@ -365,7 +374,9 @@ export function NarrativeFilter({
           <div
             className={cn(
               "michelin-book-page michelin-book-page-left flex flex-col",
-              embedded ? "michelin-embedded-page min-h-0 overflow-hidden p-5 sm:p-6" : "p-6 sm:p-9"
+              embedded
+                ? "michelin-embedded-page min-h-0 overflow-hidden p-5 sm:p-6"
+                : "p-6 sm:p-9"
             )}
           >
             <div className="mb-2 flex items-center justify-between gap-4">
@@ -376,6 +387,7 @@ export function NarrativeFilter({
                 {leftQuestion.label}
               </span>
             </div>
+
             <div className="mb-6 border-t border-[#DDDDDD]" />
 
             <AnimatePresence mode="wait">
@@ -390,11 +402,14 @@ export function NarrativeFilter({
                 <h1
                   className={cn(
                     "michelin-book-question-title leading-tight text-ink",
-                    embedded ? "text-3xl sm:text-[2.45rem]" : "text-3xl sm:text-4xl"
+                    embedded
+                      ? "text-3xl sm:text-[2.45rem]"
+                      : "text-3xl sm:text-4xl"
                   )}
                 >
                   {finished ? "Votre chapitre est pret." : leftQuestion.question}
                 </h1>
+
                 <p
                   className={cn(
                     "michelin-book-question-intro text-[#4D4D4D]",
@@ -416,6 +431,7 @@ export function NarrativeFilter({
                     >
                       <path d="M12 2l2.6 6.9L22 10l-5.5 4.7L18.2 22 12 18l-6.2 4 1.7-7.3L2 10l7.4-1.1z" />
                     </svg>
+
                     <span className="text-[10px] font-semibold uppercase tracking-[0.34em] text-[#6F675F]">
                       Le Guide Michelin
                     </span>
@@ -432,7 +448,9 @@ export function NarrativeFilter({
           <div
             className={cn(
               "michelin-book-page michelin-book-page-right relative flex flex-col",
-              embedded ? "michelin-embedded-page min-h-0 overflow-hidden p-5 sm:p-6" : "p-6 sm:p-9"
+              embedded
+                ? "michelin-embedded-page min-h-0 overflow-hidden p-5 sm:p-6"
+                : "p-6 sm:p-9"
             )}
           >
             {embedded ? (
@@ -445,6 +463,7 @@ export function NarrativeFilter({
                     transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
                   />
                 </div>
+
                 <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#757575]">
                   {step + 1}/{questions.length}
                 </span>
@@ -459,6 +478,7 @@ export function NarrativeFilter({
                 {finished ? "Resultat" : `${rightQuestion.options.length} options`}
               </span>
             </div>
+
             <div className="mb-6 border-t border-[#DDDDDD]" />
 
             <AnimatePresence mode="wait">
@@ -476,13 +496,16 @@ export function NarrativeFilter({
                 {finished ? (
                   <div className="flex flex-1 flex-col justify-center rounded border border-[#E8E8E8] bg-white/70 p-5 text-center">
                     <Check className="mx-auto text-rouge" size={28} />
+
                     <h2 className="mt-4 text-xl font-semibold text-ink">
                       Selection generee
                     </h2>
+
                     <p className="mt-2 text-sm leading-6 text-[#4D4D4D]">
                       {restaurants.length} restaurants correspondent a votre
                       moment.
                     </p>
+
                     <Button onClick={reset} variant="secondary" className="mt-5">
                       Recommencer
                     </Button>
@@ -520,6 +543,7 @@ export function NarrativeFilter({
                         >
                           <Icon size={embedded ? 18 : 20} />
                         </span>
+
                         <span className="min-w-0 flex-1">
                           <span
                             className={cn(
@@ -529,12 +553,14 @@ export function NarrativeFilter({
                           >
                             {option.label}
                           </span>
+
                           {!embedded ? (
                             <span className="mt-1 block text-sm leading-5 text-[#757575]">
                               {option.detail}
                             </span>
                           ) : null}
                         </span>
+
                         {turning && selected ? (
                           <Loader2
                             size={18}
@@ -583,42 +609,45 @@ export function NarrativeFilter({
       </section>
 
       {!immersive ? (
-      <section className="space-y-4 pb-4">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <div className="mb-2 h-1 w-[54px] rounded bg-rouge" />
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#999999]">
-              Resultat
-            </p>
-            <h2 className="mt-1 text-2xl font-medium text-ink">{title}</h2>
+        <section className="space-y-4 pb-4">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <div className="mb-2 h-1 w-[54px] rounded bg-rouge" />
+
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#999999]">
+                Resultat
+              </p>
+
+              <h2 className="mt-1 text-2xl font-medium text-ink">{title}</h2>
+            </div>
+
+            {loading ? (
+              <span className="inline-flex items-center gap-2 text-sm font-medium text-[#757575]">
+                <Loader2 size={16} className="animate-spin" />
+                Generation en cours
+              </span>
+            ) : null}
           </div>
-          {loading ? (
-            <span className="inline-flex items-center gap-2 text-sm font-medium text-[#757575]">
-              <Loader2 size={16} className="animate-spin" />
-              Generation en cours
-            </span>
+
+          {error ? (
+            <div className="rounded border border-rouge/30 bg-white p-5 text-sm font-medium text-rouge shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
+              {error}
+            </div>
           ) : null}
-        </div>
 
-        {error ? (
-          <div className="rounded border border-rouge/30 bg-white p-5 text-sm font-medium text-rouge shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
-            {error}
-          </div>
-        ) : null}
-
-        {restaurants.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {restaurants.map((restaurant) => (
-              <RestaurantCard key={restaurant.id} restaurant={restaurant} />
-            ))}
-          </div>
-        ) : !error ? (
-          <div className="rounded border border-dashed border-[#CCCCCC] bg-white/65 p-6 text-sm leading-6 text-[#757575]">
-            Repondez aux pages du Guide pour faire apparaitre une selection
-            issue de l'API recommandations, Prisma et PostgreSQL.
-          </div>
-        ) : null}
-      </section>
+          {restaurants.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {restaurants.map((restaurant) => (
+                <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+              ))}
+            </div>
+          ) : !error ? (
+            <div className="rounded border border-dashed border-[#CCCCCC] bg-white/65 p-6 text-sm leading-6 text-[#757575]">
+              Repondez aux pages du Guide pour faire apparaitre une selection
+              issue de l'API recommandations, Prisma et PostgreSQL.
+            </div>
+          ) : null}
+        </section>
       ) : null}
     </div>
   );

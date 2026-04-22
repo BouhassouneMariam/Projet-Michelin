@@ -2,17 +2,20 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { BookmarkCheck, BookmarkPlus, Heart, MapPin, Star } from "lucide-react";
+import { BookmarkCheck, BookmarkPlus, MapPin, Star } from "lucide-react";
 import { motion } from "framer-motion";
+import { LikeButton } from "@/components/shared/LikeButton";
 import { DEFAULT_COLLECTION_ID } from "@/lib/demo-user";
 import type { RestaurantDto } from "@/types/api";
 
 export function RestaurantCard({
   restaurant,
-  compact = false
+  compact = false,
+  initialLiked = false
 }: {
   restaurant: RestaurantDto;
   compact?: boolean;
+  initialLiked?: boolean;
 }) {
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -100,10 +103,11 @@ export function RestaurantCard({
         </div>
 
         <div className="flex items-center justify-between gap-3 border-t border-ink/10 pt-3">
-          <span className="inline-flex items-center gap-1 text-sm font-semibold text-ink/60">
-            <Heart size={15} />
-            {restaurant.likesCount}
-          </span>
+          <LikeButton
+            restaurantId={restaurant.id}
+            initialLiked={initialLiked}
+            initialCount={restaurant.likesCount}
+          />
           <button
             onClick={saveToCollection}
             disabled={saving || saved}
