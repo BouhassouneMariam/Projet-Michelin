@@ -1,11 +1,28 @@
+@import url("https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
   color-scheme: light;
-  --background: #f7f2e8;
-  --foreground: #12100d;
+  --background: #F5F4F2;
+  --foreground: #191919;
+  --michelin-red: #BA0B2F;
+  --michelin-black: #191919;
+  --michelin-nav: #333333;
+  --michelin-secondary: #4D4D4D;
+  --michelin-subtle: #757575;
+  --michelin-muted: #999999;
+  --michelin-border: #CCCCCC;
+  --michelin-border-light: #DDDDDD;
+  --michelin-separator: #E8E8E8;
+  --michelin-footer: #F9F8F7;
+  --michelin-page: #FBFAF6;
+  --michelin-gold: #E5C86C;
+  --transition-elegant: cubic-bezier(0.22, 1, 0.36, 1);
+  --michelin-book-closed-width: min(48vw, 50dvh, 520px);
+  --michelin-book-open-width: min(96vw, 118dvh, 1280px);
 }
 
 * {
@@ -20,13 +37,10 @@ html {
 body {
   min-height: 100%;
   margin: 0;
-  background:
-    linear-gradient(180deg, rgba(247, 242, 232, 0.88), rgba(247, 242, 232, 1)),
-    radial-gradient(circle at 12% 10%, rgba(178, 45, 45, 0.1), transparent 26%),
-    radial-gradient(circle at 84% 8%, rgba(66, 90, 70, 0.12), transparent 25%);
+  background: var(--background);
   color: var(--foreground);
   font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Figtree, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
 }
 
@@ -50,11 +64,582 @@ select {
   scrollbar-width: none;
 }
 
+.michelin-paper {
+  background-color: var(--background);
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.42) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.42) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.michelin-home-copy {
+  position: absolute;
+  left: clamp(24px, 8vw, 160px);
+  top: 50%;
+  z-index: 20;
+  display: flex;
+  width: min(42vw, 560px);
+  min-width: 320px;
+  transform: translateY(-50%);
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.michelin-home-copy[aria-hidden="true"] {
+  pointer-events: none;
+}
+
+.michelin-home-book-shell {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 10;
+  width: min(98vw, 1320px);
+  transform-origin: center center;
+}
+
+.michelin-book-scene {
+  height: min(84dvh, 860px);
+  min-height: 430px;
+  perspective: 2400px;
+  perspective-origin: 50% 38%;
+}
+
+.michelin-physical-book-stage {
+  position: relative;
+  width: var(--michelin-book-open-width);
+  aspect-ratio: 1.48;
+  min-height: 0;
+  transform-style: preserve-3d;
+}
+
+.michelin-physical-pages {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  transform-origin: center center;
+  border: 1px solid rgba(204, 204, 204, 0.78);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(255, 248, 236, 0.99), rgba(246, 238, 225, 0.99));
+  box-shadow:
+    0 38px 80px -34px rgba(25, 25, 25, 0.54),
+    0 14px 34px -24px rgba(25, 25, 25, 0.42),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+}
+
+.michelin-physical-pages::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  top: 0;
+  z-index: 5;
+  width: 46px;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.06) 34%,
+    rgba(0, 0, 0, 0.18) 50%,
+    rgba(0, 0, 0, 0.06) 66%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.michelin-physical-content {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.michelin-physical-paper-depth {
+  position: absolute;
+  bottom: 10px;
+  right: -13px;
+  top: 10px;
+  z-index: 1;
+  width: 22px;
+  border-radius: 0 4px 4px 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    #FFFFFF 0,
+    #E8E8E8 1px,
+    #F5F4F2 3px,
+    #FFFFFF 4px
+  );
+  box-shadow: 6px 14px 26px -18px rgba(25, 25, 25, 0.7);
+}
+
+.michelin-physical-cover {
+  position: absolute;
+  display: none !important;
+  visibility: hidden !important;
+  bottom: 0;
+  left: 50%;
+  top: 0;
+  z-index: 8;
+  width: 50%;
+  appearance: none;
+  border: 0;
+  border-radius: 7px 16px 16px 7px;
+  background:
+    linear-gradient(135deg, #BA0B2F 0%, #8F0926 52%, #4A0616 100%);
+  box-shadow:
+    0 36px 78px -32px rgba(25, 25, 25, 0.72),
+    0 16px 34px -20px rgba(25, 25, 25, 0.55),
+    inset 0 0 74px rgba(0, 0, 0, 0.4),
+    inset 5px 0 0 rgba(0, 0, 0, 0.24),
+    inset -7px 0 0 rgba(255, 255, 255, 0.16);
+  color: var(--michelin-gold);
+  cursor: pointer;
+  outline: none;
+  padding: 24px;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  touch-action: manipulation;
+}
+
+.michelin-physical-cover:focus-visible {
+  box-shadow:
+    0 0 0 3px rgba(186, 11, 47, 0.28),
+    0 36px 78px -32px rgba(25, 25, 25, 0.72),
+    inset 0 0 74px rgba(0, 0, 0, 0.4);
+}
+
+.michelin-physical-cover:disabled {
+  cursor: default;
+  pointer-events: none;
+}
+
+.michelin-physical-cover::after {
+  content: "";
+  position: absolute;
+  bottom: 10px;
+  right: 6px;
+  top: 10px;
+  width: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow: -10px 0 18px rgba(0, 0, 0, 0.18);
+}
+
+.michelin-physical-cover-inside {
+  position: absolute;
+  inset: 0;
+  border-radius: 7px 16px 16px 7px;
+  background:
+    linear-gradient(135deg, #6F071E 0%, #9D0928 48%, #4A0616 100%),
+    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: auto, 18px 18px;
+  box-shadow:
+    inset 18px 0 24px rgba(0, 0, 0, 0.32),
+    inset -8px 0 18px rgba(255, 255, 255, 0.08);
+  transform: rotateY(180deg) translateZ(1px);
+  backface-visibility: hidden;
+  pointer-events: none;
+}
+
+.michelin-physical-cover-blank {
+  position: absolute;
+  inset: 24px;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-radius: 4px 10px 10px 4px;
+  transform: translateZ(2px);
+  backface-visibility: hidden;
+  pointer-events: none;
+}
+
+.michelin-physical-cover-design {
+  display: flex;
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 2px solid rgba(255, 255, 255, 0.36);
+  border-radius: 4px 10px 10px 4px;
+  padding: 34px 28px;
+  text-align: center;
+}
+
+.michelin-physical-cover .michelin-physical-cover-design,
+.michelin-physical-cover > :not(.michelin-physical-cover-inside):not(.michelin-physical-cover-blank) {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+.michelin-physical-spine {
+  position: absolute;
+  display: none !important;
+  visibility: hidden !important;
+  bottom: -1px;
+  left: 50%;
+  top: -1px;
+  z-index: 9;
+  width: 20px;
+  transform: translateX(-50%);
+  border-radius: 4px;
+  background: transparent;
+  box-shadow: none;
+  pointer-events: none;
+}
+
+.michelin-opening-fold {
+  position: absolute;
+  bottom: 0;
+  left: calc(50% - 22px);
+  top: 0;
+  z-index: 11;
+  width: 86px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.03) 18%,
+    rgba(0, 0, 0, 0.17) 46%,
+    rgba(255, 255, 255, 0.48) 54%,
+    rgba(0, 0, 0, 0.08) 68%,
+    transparent 100%
+  );
+  filter: blur(0.4px);
+  transform-origin: center center;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.michelin-closed-book-button {
+  position: absolute;
+  left: 75%;
+  top: 50%;
+  z-index: 12;
+  width: var(--michelin-book-closed-width);
+  aspect-ratio: 0.74;
+  transform: translate(-50%, -50%);
+  appearance: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  outline: none;
+  padding: 0;
+  transform-style: preserve-3d;
+  touch-action: manipulation;
+}
+
+.michelin-closed-book-button:disabled {
+  cursor: default;
+  pointer-events: none;
+}
+
+.michelin-closed-book-button[aria-hidden="true"] {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+.michelin-closed-book-button:focus-visible {
+  border-radius: 8px 16px 16px 8px;
+  box-shadow: 0 0 0 3px rgba(186, 11, 47, 0.28);
+}
+
+.michelin-closed-book-button .michelin-book-3d {
+  height: 100%;
+  width: 100%;
+}
+
+.michelin-book-3d {
+  position: relative;
+  width: var(--michelin-book-closed-width);
+  aspect-ratio: 0.74;
+  transform-style: preserve-3d;
+  touch-action: manipulation;
+}
+
+.michelin-book-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backface-visibility: hidden;
+  border-radius: 6px 14px 14px 6px;
+}
+
+.michelin-book-cover-front {
+  z-index: 5;
+  transform-origin: left center;
+  background:
+    linear-gradient(135deg, #BA0B2F 0%, #8F0926 54%, #4A0616 100%);
+  box-shadow:
+    0 30px 60px -20px rgba(25, 25, 25, 0.45),
+    0 10px 25px -10px rgba(25, 25, 25, 0.3),
+    inset 0 0 60px rgba(0, 0, 0, 0.38),
+    inset 4px 0 0 rgba(0, 0, 0, 0.26);
+  padding: 24px;
+  transition: transform 1s var(--transition-elegant);
+}
+
+.michelin-book-cover-back {
+  z-index: 1;
+  transform: rotateY(0deg) translateZ(-1px);
+  background: linear-gradient(180deg, #FFFFFF 0%, #F5F4F2 100%);
+  box-shadow: inset 4px 0 8px rgba(0, 0, 0, 0.08);
+}
+
+.michelin-book-spine {
+  position: absolute;
+  bottom: 0;
+  left: -14px;
+  top: 0;
+  width: 28px;
+  transform: rotateY(90deg) translateZ(14px);
+  border-radius: 4px 0 0 4px;
+  background: linear-gradient(90deg, #4A0616, #8F0926, #4A0616);
+}
+
+.michelin-book-pages-edge {
+  position: absolute;
+  bottom: 4px;
+  right: -10px;
+  top: 4px;
+  width: 20px;
+  transform: rotateY(-90deg) translateZ(10px);
+  border-radius: 0 2px 2px 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    #FFFFFF 0,
+    #E8E8E8 1px,
+    #F5F4F2 2px
+  );
+}
+
+.michelin-book-open .michelin-book-cover-front {
+  transform: rotateY(-165deg);
+}
+
+.michelin-book-foil {
+  background: linear-gradient(135deg, #FFF2B8 0%, #E5C86C 42%, #B9932D 100%);
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
+  -webkit-background-clip: text;
+}
+
+.michelin-star-glow {
+  filter: drop-shadow(0 0 6px rgba(229, 200, 108, 0.58));
+}
+
+.michelin-open-book {
+  position: relative;
+  overflow: hidden;
+  transform-style: preserve-3d;
+  border: 1px solid rgba(204, 204, 204, 0.7);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #FFF8EC 0%, #F6EEE1 100%);
+  box-shadow:
+    0 30px 60px -26px rgba(25, 25, 25, 0.38),
+    0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.michelin-embedded-open-book {
+  position: relative;
+  isolation: isolate;
+  min-height: 0;
+  background: linear-gradient(180deg, #FFF8EC 0%, #F6EEE1 100%);
+  transform-style: preserve-3d;
+}
+
+.michelin-embedded-open-book::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  top: 0;
+  z-index: 6;
+  width: 44px;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.06) 36%,
+    rgba(0, 0, 0, 0.2) 50%,
+    rgba(0, 0, 0, 0.06) 64%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.michelin-embedded-page {
+  min-width: 0;
+  min-height: 0;
+}
+
+.michelin-open-book::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  top: 0;
+  z-index: 4;
+  width: 40px;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.07) 42%,
+    rgba(0, 0, 0, 0.2) 50%,
+    rgba(0, 0, 0, 0.07) 58%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.michelin-book-page {
+  position: relative;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.42), transparent 34%),
+    linear-gradient(180deg, #FFF8EC 0%, #F6EEE1 100%);
+  transform-style: preserve-3d;
+}
+
+.michelin-book-page-left {
+  border-radius: 8px 0 0 8px;
+  box-shadow: inset -16px 0 24px -18px rgba(0, 0, 0, 0.32);
+}
+
+.michelin-book-page-right {
+  border-radius: 0 8px 8px 0;
+  box-shadow: inset 16px 0 24px -18px rgba(0, 0, 0, 0.32);
+}
+
+.michelin-quick-page-effect {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.michelin-quick-page-effect::before {
+  position: absolute;
+  bottom: -15%;
+  left: 0;
+  top: -15%;
+  width: 42%;
+  content: "";
+  transform: skewX(-14deg);
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(186, 11, 47, 0.08) 28%,
+      rgba(255, 255, 255, 0.78) 52%,
+      rgba(186, 11, 47, 0.1) 72%,
+      transparent 100%
+    );
+  box-shadow: 0 0 26px rgba(186, 11, 47, 0.12);
+}
+
+.michelin-book-question-title {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.michelin-book-question-intro {
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+  color: #6F675F;
+}
+
+.michelin-guide-signature svg {
+  filter: drop-shadow(0 2px 5px rgba(186, 11, 47, 0.18));
+}
+
+@media (max-width: 767px) {
+  :root {
+    --michelin-book-closed-width: min(74vw, 30dvh, 280px);
+    --michelin-book-open-width: min(94vw, 60dvh, 560px);
+  }
+
+  .michelin-home-copy {
+    left: 50%;
+    top: 12%;
+    width: min(88vw, 440px);
+    min-width: 0;
+    transform: translateX(-50%);
+    align-items: center;
+    text-align: center;
+  }
+
+  .michelin-home-book-shell {
+    width: 94vw;
+  }
+
+  .michelin-book-scene {
+    height: min(72dvh, 560px);
+    min-height: 380px;
+  }
+
+  .michelin-physical-book-stage {
+    min-height: 0;
+  }
+
+  .michelin-physical-cover {
+    padding: 16px;
+  }
+
+  .michelin-physical-cover-design {
+    padding: 26px 18px;
+  }
+
+  .michelin-physical-cover-blank {
+    inset: 16px;
+  }
+
+  .michelin-opening-fold {
+    display: none;
+  }
+
+  .michelin-closed-book-button {
+    left: 50%;
+  }
+
+  .michelin-open-book::before {
+    display: none;
+  }
+
+  .michelin-book-page-left {
+    border-radius: 8px 8px 0 0;
+    box-shadow: inset 0 -10px 18px -12px rgba(0, 0, 0, 0.2);
+  }
+
+  .michelin-book-page-right {
+    border-radius: 0 0 8px 8px;
+    box-shadow: inset 0 10px 18px -12px rgba(0, 0, 0, 0.2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .michelin-book-cover-front,
+  .michelin-book-3d,
+  .michelin-opening-fold,
+  .hover-lift {
+    transition: none;
+  }
+}
+
 .leaflet-container {
   height: 100%;
   width: 100%;
   font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Figtree, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
   background: #d9ddcf;
 }
