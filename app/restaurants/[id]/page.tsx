@@ -35,7 +35,6 @@ export default async function RestaurantDetailPage({
     `A Michelin-selected ${restaurant.cuisine || "restaurant"} in ${
       restaurant.city
     }.`;
-
   const likedIds = await getUserLikedRestaurantIds(DEMO_USER_ID);
   const isLiked = likedIds.includes(restaurant.id);
 
