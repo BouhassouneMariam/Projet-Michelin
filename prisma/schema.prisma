@@ -45,6 +45,7 @@ model User {
   bio          String?
   isPublic     Boolean @default(true)
   isAmbassador Boolean @default(false)
+  passwordHash String
 
   collections Collection[]
   likes       RestaurantLike[]

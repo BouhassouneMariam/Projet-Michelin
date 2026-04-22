@@ -6,8 +6,13 @@ import { BadgePill } from "@/components/shared/BadgePill";
 import { listRestaurants } from "@/features/restaurants/restaurant.queries";
 import { getUserLikedRestaurantIds } from "@/features/social/social.service";
 import { DEMO_USER_ID } from "@/lib/demo-user";
+import {getCurrentUserId} from "@/lib/auth";
+import {redirect} from "next/navigation";
+  
+
 
 export default async function HomePage() {
+  
   const [restaurants, likedIds] = await Promise.all([
     listRestaurants({ city: "Paris" }),
     getUserLikedRestaurantIds(DEMO_USER_ID)
