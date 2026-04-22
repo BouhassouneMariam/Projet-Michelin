@@ -9,7 +9,10 @@ import {
   Star
 } from "lucide-react";
 import { BadgePill } from "@/components/shared/BadgePill";
+import { LikeButton } from "@/components/shared/LikeButton";
 import { getRestaurantById } from "@/features/restaurants/restaurant.queries";
+import { getUserLikedRestaurantIds } from "@/features/social/social.service";
+import { DEMO_USER_ID } from "@/lib/demo-user";
 
 export default async function RestaurantDetailPage({
   params
@@ -32,6 +35,8 @@ export default async function RestaurantDetailPage({
     `A Michelin-selected ${restaurant.cuisine || "restaurant"} in ${
       restaurant.city
     }.`;
+  const likedIds = await getUserLikedRestaurantIds(DEMO_USER_ID);
+  const isLiked = likedIds.includes(restaurant.id);
 
   return (
     <main className="pb-8">
@@ -96,7 +101,13 @@ export default async function RestaurantDetailPage({
             <p className="text-xs uppercase tracking-[0.16em] text-ink/40">
               Social
             </p>
-            <p className="mt-1 font-semibold">{restaurant.likesCount} likes</p>
+            <div className="mt-1">
+              <LikeButton
+                restaurantId={restaurant.id}
+                initialLiked={isLiked}
+                initialCount={restaurant.likesCount}
+              />
+            </div>
           </div>
         </div>
 
@@ -155,3 +166,4 @@ export default async function RestaurantDetailPage({
     </main>
   );
 }
+
