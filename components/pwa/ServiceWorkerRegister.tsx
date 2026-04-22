@@ -10,21 +10,23 @@ export function ServiceWorkerRegister() {
     }
 
     if (process.env.NODE_ENV !== "production") {
-      navigator.serviceWorker
-        .getRegistrations()
-        .then((registrations) =>
-          Promise.all(registrations.map((registration) => registration.unregister()))
-        )
-        .catch(() => {
-          // Development cleanup should not block the app.
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        registrations.forEach((registration) => {
+          void registration.unregister();
         });
+      }).catch(() => {
+        // Local PWA cleanup should never block development.
+      });
 
-      caches
-        .keys()
-        .then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
-        .catch(() => {
-          // Development cleanup should not block the app.
+      if ("caches" in window) {
+        window.caches.keys().then((keys) => {
+          keys.forEach((key) => {
+            void window.caches.delete(key);
+          });
+        }).catch(() => {
+          // Local cache cleanup should never block development.
         });
+      }
 
       return;
     }
