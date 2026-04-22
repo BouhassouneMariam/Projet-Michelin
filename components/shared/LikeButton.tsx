@@ -6,11 +6,13 @@ import { Heart } from "lucide-react";
 export function LikeButton({
   restaurantId,
   initialLiked = false,
-  initialCount = 0
+  initialCount = 0,
+  onAuthRequired
 }: {
   restaurantId: string;
   initialLiked?: boolean;
   initialCount?: number;
+  onAuthRequired?: () => void;
 }) {
   const [liked, setLiked] = useState(initialLiked);
   const [count, setCount] = useState(initialCount);
@@ -35,6 +37,10 @@ export function LikeButton({
         // Revert on failure
         setLiked(wasLiked);
         setCount((c) => (wasLiked ? c + 1 : c - 1));
+
+        if (response.status === 401) {
+          onAuthRequired?.();
+        }
       }
     } catch {
       // Revert on error

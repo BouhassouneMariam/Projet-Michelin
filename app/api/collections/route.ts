@@ -1,5 +1,5 @@
-import { badRequest, ok } from "@/lib/api-response";
-import { DEMO_USER_ID } from "@/lib/demo-user";
+import { badRequest, ok, unauthorized } from "@/lib/api-response";
+import { getCurrentUserId } from "@/lib/auth";
 import { createCollectionSchema } from "@/features/collections/collection.validation";
 import {
   listUserCollections,
@@ -7,12 +7,24 @@ import {
 } from "@/features/collections/collection.service";
 
 export async function GET() {
-  const collections = await listUserCollections(DEMO_USER_ID);
+  const userId = getCurrentUserId();
+
+  if (!userId) {
+    return unauthorized();
+  }
+
+  const collections = await listUserCollections(userId);
 
   return ok({ collections });
 }
 
 export async function POST(request: Request) {
+  const userId = getCurrentUserId();
+
+  if (!userId) {
+    return unauthorized();
+  }
+
   const json = await request.json().catch(() => null);
   const parsed = createCollectionSchema.safeParse(json);
 
@@ -20,7 +32,7 @@ export async function POST(request: Request) {
     return badRequest("Invalid collection payload");
   }
 
-  const collection = await createCollection(DEMO_USER_ID, parsed.data);
+  const collection = await createCollection(userId, parsed.data);
 
   return ok({ collection }, { status: 201 });
 }

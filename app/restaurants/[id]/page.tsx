@@ -12,7 +12,7 @@ import { BadgePill } from "@/components/shared/BadgePill";
 import { LikeButton } from "@/components/shared/LikeButton";
 import { getRestaurantById } from "@/features/restaurants/restaurant.queries";
 import { getUserLikedRestaurantIds } from "@/features/social/social.service";
-import { DEMO_USER_ID } from "@/lib/demo-user";
+import { getCurrentUserId } from "@/lib/auth";
 
 export default async function RestaurantDetailPage({
   params
@@ -35,7 +35,8 @@ export default async function RestaurantDetailPage({
     `A Michelin-selected ${restaurant.cuisine || "restaurant"} in ${
       restaurant.city
     }.`;
-  const likedIds = await getUserLikedRestaurantIds(DEMO_USER_ID);
+  const userId = getCurrentUserId();
+  const likedIds = userId ? await getUserLikedRestaurantIds(userId) : [];
   const isLiked = likedIds.includes(restaurant.id);
 
   return (

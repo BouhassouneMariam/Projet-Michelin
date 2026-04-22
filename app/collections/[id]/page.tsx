@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, Globe, Lock, MapPin, Search } from "lucide-react";
 import { BadgePill } from "@/components/shared/BadgePill";
 import { RestaurantCard } from "@/components/shared/RestaurantCard";
@@ -7,17 +7,23 @@ import { CollectionActions } from "@/components/collections/CollectionActions";
 import { RemoveRestaurantButton } from "@/components/collections/RemoveRestaurantButton";
 import { getCollection } from "@/features/collections/collection.service";
 import { getUserLikedRestaurantIds, getLikedCollection } from "@/features/social/social.service";
-import { DEMO_USER_ID } from "@/lib/demo-user";
+import { getCurrentUserId } from "@/lib/auth";
 
 export default async function CollectionDetailPage({
   params
 }: {
   params: { id: string };
 }) {
+  const userId = getCurrentUserId();
+
+  if (!userId) {
+    redirect("/login");
+  }
+
   let collection;
   
   if (params.id === "__liked__") {
-    collection = await getLikedCollection(DEMO_USER_ID);
+    collection = await getLikedCollection(userId);
   } else {
     collection = await getCollection(params.id);
   }
@@ -26,10 +32,14 @@ export default async function CollectionDetailPage({
     notFound();
   }
 
-  const likedIds = await getUserLikedRestaurantIds(DEMO_USER_ID);
+  if (!collection.isPublic && collection.owner.id !== userId) {
+    notFound();
+  }
+
+  const likedIds = await getUserLikedRestaurantIds(userId);
   const likedSet = new Set(likedIds);
   
-  const isOwner = params.id !== "__liked__" && collection.owner.id === DEMO_USER_ID;
+  const isOwner = params.id !== "__liked__" && collection.owner.id === userId;
   const firstImage = collection.coverUrl || collection.items[0]?.restaurant.imageUrl;
 
   return (

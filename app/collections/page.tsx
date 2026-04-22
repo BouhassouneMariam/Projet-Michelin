@@ -1,16 +1,23 @@
 import { Globe, Heart, Layers3 } from "lucide-react";
+import { redirect } from "next/navigation";
 import { BadgePill } from "@/components/shared/BadgePill";
 import { CollectionList } from "@/components/collections/CollectionList";
 import { listUserCollections, listPopularCollections } from "@/features/collections/collection.service";
 import { getLikedCollection } from "@/features/social/social.service";
-import { DEMO_USER_ID } from "@/lib/demo-user";
+import { getCurrentUserId } from "@/lib/auth";
 import { CollectionCard } from "@/components/collections/CollectionCard";
 
 export default async function CollectionsPage() {
+  const userId = getCurrentUserId();
+
+  if (!userId) {
+    redirect("/login");
+  }
+
   const [collections, likedCollection, popularCollections] = await Promise.all([
-    listUserCollections(DEMO_USER_ID),
-    getLikedCollection(DEMO_USER_ID),
-    listPopularCollections(DEMO_USER_ID)
+    listUserCollections(userId),
+    getLikedCollection(userId),
+    listPopularCollections(userId)
   ]);
 
   return (

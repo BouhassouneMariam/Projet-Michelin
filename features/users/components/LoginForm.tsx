@@ -61,7 +61,7 @@ export function LoginForm() {
         return;
       }
 
-      window.location.assign("/discover");
+      window.location.assign("/");
     } catch {
       setErrorMessage("Le serveur est injoignable pour le moment.");
     } finally {

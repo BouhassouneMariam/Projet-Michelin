@@ -2,14 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Compass, Home, Layers3, Map, Users } from "lucide-react";
+import { Compass, Home, Map } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 const items = [
   { href: "/", label: "Home", icon: Home },
   { href: "/discover", label: "Discover", icon: Compass },
-  { href: "/collections", label: "Lists", icon: Layers3 },
-  { href: "/social", label: "Social", icon: Users },
   { href: "/map", label: "Map", icon: Map }
 ];
 
@@ -18,7 +16,7 @@ export function BottomNav() {
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-ink/10 bg-porcelain/90 px-2 py-2 backdrop-blur-xl md:hidden">
-      <div className="mx-auto grid max-w-lg grid-cols-5 gap-1">
+      <div className="mx-auto grid max-w-sm grid-cols-3 gap-1">
         {items.map((item) => {
           const Icon = item.icon;
           const active =

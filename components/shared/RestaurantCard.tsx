@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { BookmarkCheck, BookmarkPlus, MapPin, Star } from "lucide-react";
+import { BookmarkPlus, Loader2, MapPin, Star } from "lucide-react";
 import { motion } from "framer-motion";
+import { AddToCollectionModal } from "@/components/collections/AddToCollectionModal";
 import { LikeButton } from "@/components/shared/LikeButton";
-import { DEFAULT_COLLECTION_ID } from "@/lib/demo-user";
 import type { RestaurantDto } from "@/types/api";
 
 export function RestaurantCard({
@@ -17,28 +17,53 @@ export function RestaurantCard({
   compact?: boolean;
   initialLiked?: boolean;
 }) {
-  const [saved, setSaved] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const [collectionModalOpen, setCollectionModalOpen] = useState(false);
+  const [authPromptVisible, setAuthPromptVisible] = useState(false);
+  const [checkingCollections, setCheckingCollections] = useState(false);
+  const promptTimerRef = useRef<number | null>(null);
 
-  async function saveToCollection() {
-    setSaving(true);
+  useEffect(() => {
+    return () => {
+      if (promptTimerRef.current) {
+        window.clearTimeout(promptTimerRef.current);
+      }
+    };
+  }, []);
+
+  function showAuthPrompt() {
+    setAuthPromptVisible(true);
+
+    if (promptTimerRef.current) {
+      window.clearTimeout(promptTimerRef.current);
+    }
+
+    promptTimerRef.current = window.setTimeout(() => {
+      setAuthPromptVisible(false);
+    }, 3600);
+  }
+
+  async function openCollectionModal() {
+    if (checkingCollections) {
+      return;
+    }
+
+    setCheckingCollections(true);
 
     try {
-      const response = await fetch(`/api/collections/${DEFAULT_COLLECTION_ID}/items`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          restaurantId: restaurant.id
-        })
-      });
+      const response = await fetch("/api/collections");
+
+      if (response.status === 401) {
+        showAuthPrompt();
+        return;
+      }
 
       if (response.ok) {
-        setSaved(true);
+        setCollectionModalOpen(true);
       }
+    } catch {
+      showAuthPrompt();
     } finally {
-      setSaving(false);
+      setCheckingCollections(false);
     }
   }
 
@@ -47,7 +72,7 @@ export function RestaurantCard({
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.34 }}
-      className="overflow-hidden rounded-lg border border-ink/10 bg-white/70 shadow-sm backdrop-blur"
+      className="relative overflow-hidden rounded-lg border border-ink/10 bg-white/70 shadow-sm backdrop-blur"
     >
       <Link href={`/restaurants/${restaurant.id}`} className="block">
         <div className={compact ? "h-44" : "h-56"}>
@@ -107,17 +132,41 @@ export function RestaurantCard({
             restaurantId={restaurant.id}
             initialLiked={initialLiked}
             initialCount={restaurant.likesCount}
+            onAuthRequired={showAuthPrompt}
           />
           <button
-            onClick={saveToCollection}
-            disabled={saving || saved}
-            className="inline-flex h-10 items-center gap-2 rounded-lg bg-rouge px-3 text-sm font-semibold text-white transition hover:bg-[#9d2626] disabled:bg-moss"
+            onClick={openCollectionModal}
+            disabled={checkingCollections}
+            className="inline-flex h-10 items-center gap-2 rounded-lg bg-rouge px-3 text-sm font-semibold text-white transition hover:bg-[#9d2626] disabled:opacity-70"
           >
-            {saved ? <BookmarkCheck size={16} /> : <BookmarkPlus size={16} />}
-            {saved ? "Saved" : "Save"}
+            {checkingCollections ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <BookmarkPlus size={16} />
+            )}
+            Save
           </button>
         </div>
       </div>
+
+      {authPromptVisible ? (
+        <div className="absolute bottom-[72px] right-4 z-20 max-w-[220px] rounded-lg border border-ink/10 bg-white px-3 py-2 text-xs font-medium leading-5 text-ink shadow-premium">
+          Connectez-vous pour aimer ou sauvegarder ce restaurant.
+          <Link
+            href="/login"
+            prefetch={false}
+            className="ml-1 font-semibold text-rouge underline-offset-2 hover:underline"
+          >
+            Se connecter
+          </Link>
+        </div>
+      ) : null}
+
+      <AddToCollectionModal
+        restaurantId={restaurant.id}
+        open={collectionModalOpen}
+        onClose={() => setCollectionModalOpen(false)}
+      />
     </motion.article>
   );
 }

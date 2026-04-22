@@ -1,15 +1,21 @@
-import { notFound, ok } from "@/lib/api-response";
-import { DEMO_USER_ID } from "@/lib/demo-user";
+import { notFound, ok, unauthorized } from "@/lib/api-response";
+import { getCurrentUserId } from "@/lib/auth";
 import { removeRestaurantFromCollection } from "@/features/collections/collection.service";
 
 export async function DELETE(
   _request: Request,
   { params }: { params: { id: string; restaurantId: string } }
 ) {
+  const userId = getCurrentUserId();
+
+  if (!userId) {
+    return unauthorized();
+  }
+
   const removed = await removeRestaurantFromCollection(
     params.id,
     params.restaurantId,
-    DEMO_USER_ID
+    userId
   );
 
   if (!removed) {

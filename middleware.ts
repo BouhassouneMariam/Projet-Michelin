@@ -2,17 +2,23 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const authPages = ["/login", "/register"];
-const protectedPages = ["/", "/discover", "/collections", "/social", "/map"];
+const protectedPages = ["/collections", "/social"];
+
+function isProtectedPage(pathname: string) {
+  return protectedPages.some(
+    (page) => pathname === page || pathname.startsWith(`${page}/`)
+  );
+}
 
 export function middleware(request: NextRequest) {
   const userId = request.cookies.get("michelin_user_id")?.value;
   const { pathname } = request.nextUrl;
 
   if (userId && authPages.includes(pathname)) {
-    return NextResponse.redirect(new URL("/discover", request.url));
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
-  if (!userId && protectedPages.includes(pathname)) {
+  if (!userId && isProtectedPage(pathname)) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
@@ -20,5 +26,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/login", "/register", "/discover", "/collections", "/social", "/map"]
+  matcher: ["/login", "/register", "/collections/:path*", "/social/:path*"]
 };

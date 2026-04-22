@@ -1,5 +1,11 @@
-import { badRequest, forbidden, notFound, ok } from "@/lib/api-response";
-import { DEMO_USER_ID } from "@/lib/demo-user";
+import {
+  badRequest,
+  forbidden,
+  notFound,
+  ok,
+  unauthorized
+} from "@/lib/api-response";
+import { getCurrentUserId } from "@/lib/auth";
 import { updateCollectionSchema } from "@/features/collections/collection.validation";
 import {
   getCollection,
@@ -12,9 +18,14 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   const collection = await getCollection(params.id);
+  const userId = getCurrentUserId();
 
   if (!collection) {
     return notFound("Collection not found");
+  }
+
+  if (!collection.isPublic && collection.owner.id !== userId) {
+    return forbidden("This collection is private");
   }
 
   return ok({ collection });
@@ -24,6 +35,12 @@ export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const userId = getCurrentUserId();
+
+  if (!userId) {
+    return unauthorized();
+  }
+
   const json = await request.json().catch(() => null);
   const parsed = updateCollectionSchema.safeParse(json);
 
@@ -31,7 +48,7 @@ export async function PATCH(
     return badRequest("Invalid update payload");
   }
 
-  const collection = await updateCollection(params.id, DEMO_USER_ID, parsed.data);
+  const collection = await updateCollection(params.id, userId, parsed.data);
 
   if (!collection) {
     return forbidden("Collection not found or you are not the owner");
@@ -44,7 +61,13 @@ export async function DELETE(
   _request: Request,
   { params }: { params: { id: string } }
 ) {
-  const deleted = await deleteCollection(params.id, DEMO_USER_ID);
+  const userId = getCurrentUserId();
+
+  if (!userId) {
+    return unauthorized();
+  }
+
+  const deleted = await deleteCollection(params.id, userId);
 
   if (!deleted) {
     return forbidden("Collection not found or you are not the owner");
