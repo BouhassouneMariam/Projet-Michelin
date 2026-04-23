@@ -180,6 +180,7 @@ export function EditProfileModal({ profile, onClose, onSuccess }: EditProfileMod
             <label className="block text-sm font-medium text-ink">
               Nom d&apos;utilisateur
             </label>
+            <label className="block text-sm font-medium text-ink">Nom d&apos;utilisateur</label>
             <input
               type="text"
               value={formData.username}
