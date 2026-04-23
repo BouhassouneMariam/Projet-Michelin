@@ -17,6 +17,7 @@ type LoginResponse = {
     id: string;
     name: string;
     username: string;
+    role: "ADMIN" | "USER";
   };
   error?: string;
 };
@@ -64,7 +65,11 @@ export function LoginForm() {
       }
 
       setAuthenticated();
-      window.location.assign("/");
+      if (data?.user?.role === "ADMIN") {
+        window.location.assign("/admin");
+      } else {
+        window.location.assign("/");
+      }
     } catch {
       setErrorMessage("Le serveur est injoignable pour le moment.");
     } finally {

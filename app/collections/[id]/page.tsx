@@ -69,7 +69,7 @@ export default async function CollectionDetailPage({
 
             <div className="flex items-center gap-2">
               {(collection.isPublic || isOwner || params.id === "__liked__") && (
-                <ShareCollectionButton collectionId={collection.id} />
+                <ShareCollectionButton collection={collection} />
               )}
               {isOwner && (
                 <CollectionActions

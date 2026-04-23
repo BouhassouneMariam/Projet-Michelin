@@ -11,6 +11,7 @@ export function toUserDto(user: UserRecord): UserDto {
         avatarUrl: user.avatarUrl,
         bio: user.bio,
         isAmbassador: user.isAmbassador,
+        role: user.role,
     };
 }
 

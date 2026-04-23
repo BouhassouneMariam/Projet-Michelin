@@ -12,6 +12,7 @@ export type UserDto = {
   avatarUrl: string | null;
   bio?: string | null;
   isAmbassador?: boolean;
+  role?: "ADMIN" | "USER";
 };
 
 export type RestaurantDto = {
