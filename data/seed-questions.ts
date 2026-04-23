@@ -1,8 +1,4 @@
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
-
-const questions = [
+export const seedQuestions = [
   {
     key: "occasion",
     label: "Occasion",
@@ -55,37 +51,3 @@ const questions = [
     ]
   }
 ];
-
-async function main() {
-  console.log("Seeding questions...");
-  for (const q of questions) {
-    const { options, ...questionData } = q;
-    const createdQuestion = await prisma.question.upsert({
-      where: { key: q.key },
-      update: questionData,
-      create: questionData,
-    });
-
-    for (const opt of options) {
-      await prisma.questionOption.upsert({
-        where: { id: `${q.key}-${opt.value}` },
-        update: opt,
-        create: {
-          id: `${q.key}-${opt.value}`,
-          ...opt,
-          questionId: createdQuestion.id,
-        },
-      });
-    }
-  }
-  console.log("Questions seeded successfully!");
-}
-
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });

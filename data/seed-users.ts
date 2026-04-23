@@ -38,5 +38,15 @@ export const seedUsers = [
     avatarUrl: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80",
     bio: "Tokyo, Seoul, Paris. Mostly tasting menus.",
     isAmbassador: true
+  },
+  {
+    id: "user-admin",
+    name: "Admin Michelin",
+    username: "admin@michelin.com",
+    passwordHash: "$argon2id$v=19$m=65536,t=3,p=4$vnZQunONZmC7euLkphEZbg$xQcVRtYTNhCvxZrvwesUOilk3AiqVQYTHbvD3wru4zA",
+    role: "ADMIN",
+    avatarUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80",
+    bio: "Administrator account for Hackathon 2026.",
+    isAmbassador: false
   }
 ];

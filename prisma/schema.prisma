@@ -37,6 +37,11 @@ enum TagType {
   FEATURE
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
 model User {
   id           String  @id @default(cuid())
   name         String
@@ -46,6 +51,7 @@ model User {
   isPublic     Boolean @default(true)
   isAmbassador Boolean @default(false)
   passwordHash String
+  role         Role    @default(USER)
 
   collections Collection[]
   likes       RestaurantLike[]
