@@ -4,7 +4,7 @@ import "./globals.css";
 import { AppShell } from "@/components/layout/AppShell";
 import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
 import { AuthProvider } from "@/features/users/AuthProvider";
-import { isAuthenticated } from "@/lib/auth";
+import { isAdmin, isAuthenticated } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "Michelin Next Gen",
@@ -26,18 +26,22 @@ export const viewport: Viewport = {
   initialScale: 1
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   const initialIsAuthenticated = isAuthenticated();
+  const initialIsAdmin = await isAdmin();
 
   return (
     <html lang="fr">
       <body>
         <ServiceWorkerRegister />
-        <AuthProvider initialIsAuthenticated={initialIsAuthenticated}>
+        <AuthProvider
+          initialIsAuthenticated={initialIsAuthenticated}
+          initialIsAdmin={initialIsAdmin}
+        >
           <AppShell>{children}</AppShell>
         </AuthProvider>
       </body>
