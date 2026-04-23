@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { LogoutButton } from "@/components/layout/LogoutButton";
 import { Logo } from "./Logo";
+import RestaurantSearchBar from "@/features/restaurants/components/RestaurantSearchBar";
 import { useAuth } from "@/features/users/AuthProvider";
 
 
@@ -34,6 +35,8 @@ export function Header() {
               </Link>
             ))}
           </nav>
+          <RestaurantSearchBar/>
+          {userId ? (
 
           {isAuthenticated ? (
             <LogoutButton />
