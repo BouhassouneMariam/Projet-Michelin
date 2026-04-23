@@ -11,8 +11,8 @@ export async function Header() {
   const navItems = [
     { href: "/discover", label: "Decouvrir" },
     { href: "/map", label: "Map" },
-    { href: "/collections", label: "Collections" },
-    ...(isUserAdmin ? [{ href: "/admin", label: "Admin" }] : [])
+    { href: "/profile", label: "Mon Profil" },
+    { href: "/admin", label: "Admin" }
   ];
 
   return (
