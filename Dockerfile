@@ -1,6 +1,5 @@
 FROM node:20-alpine
 
-# Install OpenSSL and other required dependencies
 RUN apk add --no-cache openssl ca-certificates
 
 WORKDIR /app
@@ -10,6 +9,8 @@ RUN npm install
 
 COPY . .
 
+RUN npx prisma generate && npm run build
+
 EXPOSE 3000
 
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "start"]

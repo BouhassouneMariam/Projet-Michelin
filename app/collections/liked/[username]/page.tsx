@@ -4,43 +4,30 @@ import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, Globe, Lock, Search } from "lucide-react";
 import { BadgePill } from "@/components/shared/BadgePill";
 import { RestaurantCard } from "@/components/shared/RestaurantCard";
-import { CollectionActions } from "@/components/collections/CollectionActions";
 import { LikedCollectionActions } from "@/components/collections/LikedCollectionActions";
 import { ShareCollectionButton } from "@/components/collections/ShareCollectionButton";
-import { RemoveRestaurantButton } from "@/components/collections/RemoveRestaurantButton";
-import { getCollection } from "@/features/collections/collection.service";
-import { getUserLikedRestaurantIds, getLikedCollection } from "@/features/social/social.service";
+import {
+  getLikedCollectionByUsername,
+  getUserLikedRestaurantIds
+} from "@/features/social/social.service";
 import { getCurrentUserId } from "@/lib/auth";
 import { getAbsoluteUrl } from "@/lib/site-url";
 
 export async function generateMetadata({
   params,
 }: {
-  params: { id: string };
+  params: { username: string };
 }): Promise<Metadata> {
-  const userId = getCurrentUserId();
+  const collection = await getLikedCollectionByUsername(params.username);
 
-  if (params.id === "__liked__") {
-    return {
-      title: "Mes coups de cœur | Michelin Next Gen",
-      description: "Retrouvez tous les restaurants aimés dans votre collection privée.",
-    };
-  }
-
-  const collection = await getCollection(params.id);
-
-  if (!collection) {
+  if (!collection || !collection.isPublic) {
     return { title: "Collection non trouvée" };
   }
 
-  if (!collection.isPublic && collection.owner.id !== userId) {
-    return { title: "Collection non trouvée" };
-  }
-
-  const collectionUrl = getAbsoluteUrl(`/collections/${collection.id}`);
-  const ogImageUrl = getAbsoluteUrl(`/api/collections/${collection.id}/og`);
+  const collectionUrl = getAbsoluteUrl(`/collections/liked/${collection.owner.username}`);
+  const ogImageUrl = getAbsoluteUrl(`/api/collections/liked/${collection.owner.username}/og`);
   const description =
-    collection.description || `Une collection de ${collection.owner.name}`;
+    collection.description || `Les coups de cœur de ${collection.owner.name}`;
 
   return {
     title: `${collection.title} | Michelin Next Gen`,
@@ -69,32 +56,21 @@ export async function generateMetadata({
   };
 }
 
-export default async function CollectionDetailPage({
+export default async function PublicLikedCollectionPage({
   params,
 }: {
-  params: { id: string };
+  params: { username: string };
 }) {
   const userId = getCurrentUserId();
-  const isLikedCollection = params.id === "__liked__";
-
-  let collection;
-  if (isLikedCollection) {
-    if (!userId) {
-      redirect("/login");
-    }
-    collection = await getLikedCollection(userId);
-  } else {
-    collection = await getCollection(params.id);
-  }
+  const collection = await getLikedCollectionByUsername(params.username);
 
   if (!collection) {
     notFound();
   }
 
   const isOwner = Boolean(userId && collection.owner.id === userId);
-  const canManageCollection = isOwner && !isLikedCollection;
 
-  if (!isLikedCollection && !collection.isPublic && !isOwner) {
+  if (!collection.isPublic && !isOwner) {
     if (!userId) {
       redirect("/login");
     }
@@ -104,9 +80,7 @@ export default async function CollectionDetailPage({
   const likedIds = userId ? await getUserLikedRestaurantIds(userId) : [];
   const likedSet = new Set(likedIds);
   const firstImage = collection.coverUrl || collection.items[0]?.restaurant.imageUrl;
-  const publicShareUrl = isLikedCollection
-    ? getAbsoluteUrl(`/collections/liked/${collection.owner.username}`)
-    : getAbsoluteUrl(`/collections/${collection.id}`);
+  const publicShareUrl = getAbsoluteUrl(`/collections/liked/${collection.owner.username}`);
 
   return (
     <main className="pb-8">
@@ -125,7 +99,7 @@ export default async function CollectionDetailPage({
         <div className="relative z-10 flex min-h-[40vh] flex-col justify-between px-5 py-6">
           <div className="flex items-center justify-between">
             <Link
-              href="/collections"
+              href={isOwner ? "/collections/__liked__" : "/collections"}
               className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 backdrop-blur transition hover:bg-white/20"
               aria-label="Back to collections"
             >
@@ -139,17 +113,8 @@ export default async function CollectionDetailPage({
                   shareUrl={publicShareUrl}
                 />
               )}
-              {isLikedCollection && isOwner && (
+              {isOwner && (
                 <LikedCollectionActions initialIsPublic={collection.isPublic} />
-              )}
-              {canManageCollection && (
-                <CollectionActions
-                  collectionId={collection.id}
-                  initialTitle={collection.title}
-                  initialDescription={collection.description}
-                  initialCoverUrl={collection.coverUrl}
-                  initialIsPublic={collection.isPublic}
-                />
               )}
             </div>
           </div>
@@ -177,12 +142,7 @@ export default async function CollectionDetailPage({
                   alt=""
                   className="h-5 w-5 rounded-full object-cover ring-1 ring-white/20"
                 />
-                <Link
-                  href={`/users/${collection.owner.username}`}
-                  className="font-medium transition hover:text-white"
-                >
-                  Par {collection.owner.name}
-                </Link>
+                <span className="font-medium">Par {collection.owner.name}</span>
               </div>
             </div>
           </div>
@@ -200,21 +160,10 @@ export default async function CollectionDetailPage({
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {collection.items.map((item) => (
               <div key={item.id} className="relative">
-                {canManageCollection && (
-                  <RemoveRestaurantButton
-                    collectionId={collection.id}
-                    restaurantId={item.restaurant.id}
-                  />
-                )}
                 <RestaurantCard
                   restaurant={item.restaurant}
                   initialLiked={likedSet.has(item.restaurant.id)}
                 />
-                {item.note && (
-                  <div className="mt-2 rounded-lg bg-porcelain p-3 text-sm text-ink/80 italic">
-                    <span className="font-semibold not-italic">Note:</span> {item.note}
-                  </div>
-                )}
               </div>
             ))}
           </div>
@@ -227,16 +176,8 @@ export default async function CollectionDetailPage({
               Cette collection est vide
             </h3>
             <p className="mb-6 max-w-sm text-sm text-ink/60">
-              Explorez les recommandations pour ajouter des restaurants à cette liste.
+              Aucun coup de cœur à afficher pour le moment.
             </p>
-            {canManageCollection && (
-              <Link
-                href="/discover"
-                className="inline-flex items-center justify-center rounded-lg bg-ink px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-ink/90"
-              >
-                Découvrir des restaurants
-              </Link>
-            )}
           </div>
         )}
       </section>
