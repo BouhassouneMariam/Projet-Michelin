@@ -49,6 +49,7 @@ model User {
   avatarUrl    String?
   bio          String?
   isPublic     Boolean @default(true)
+  likedCollectionIsPublic Boolean @default(false)
   isAmbassador Boolean @default(false)
   passwordHash String
   role         Role    @default(USER)
