@@ -325,6 +325,9 @@ export function AdminClient({ restaurants, users, initialQuestions }: { restaura
                             <option value="GREEN_STAR">Étoile Verte</option>
                           </select>
                         </td>
+                        <td className="px-6 py-4">
+                          <input placeholder="URL Image" className="w-full rounded bg-porcelain px-2 py-1.5 outline-none ring-1 ring-ink/20" value={editFormData.imageUrl || ""} onChange={e => setEditFormData({...editFormData, imageUrl: e.target.value})} />
+                        </td>
                         <td className="px-6 py-4 text-right flex justify-end gap-3">
                           <button disabled={busy} onClick={() => handleUpdateRestaurant(r.id)} className="text-moss hover:text-moss/80"><Check size={18} /></button>
                           <button disabled={busy} onClick={() => setEditingRestId(null)} className="text-ink/60 hover:text-ink"><X size={18} /></button>
@@ -377,6 +380,7 @@ export function AdminClient({ restaurants, users, initialQuestions }: { restaura
                   <th className="px-6 py-4 cursor-pointer hover:bg-ink/5 transition" onClick={() => handleSort("createdAt")}>
                     <div className="flex items-center gap-2">Inscrit le <ArrowUpDown size={14} className="text-ink/30" /></div>
                   </th>
+                  <th className="px-6 py-4">Rôle</th>
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
@@ -390,6 +394,12 @@ export function AdminClient({ restaurants, users, initialQuestions }: { restaura
                         <td className="px-6 py-4"><input className="w-full rounded bg-porcelain px-2 py-1.5 outline-none ring-1 ring-ink/20" value={editFormData.name} onChange={e => setEditFormData({...editFormData, name: e.target.value})} /></td>
                         <td className="px-6 py-4"><input className="w-full rounded bg-porcelain px-2 py-1.5 outline-none ring-1 ring-ink/20" value={editFormData.username} onChange={e => setEditFormData({...editFormData, username: e.target.value})} /></td>
                         <td className="px-6 py-4">{new Date(u.createdAt).toLocaleDateString()}</td>
+                        <td className="px-6 py-4">
+                          <select className="w-full rounded bg-porcelain px-2 py-1.5 outline-none ring-1 ring-ink/20" value={editFormData.role} onChange={e => setEditFormData({...editFormData, role: e.target.value})}>
+                            <option value="USER">Utilisateur</option>
+                            <option value="ADMIN">Administrateur</option>
+                          </select>
+                        </td>
                         <td className="px-6 py-4 text-right flex justify-end gap-3">
                           <button disabled={busy} onClick={() => handleUpdateUser(u.id)} className="text-moss hover:text-moss/80"><Check size={18} /></button>
                           <button disabled={busy} onClick={() => setEditingUserId(null)} className="text-ink/60 hover:text-ink"><X size={18} /></button>
@@ -403,6 +413,13 @@ export function AdminClient({ restaurants, users, initialQuestions }: { restaura
                         </td>
                         <td className="px-6 py-4">{u.username}</td>
                         <td className="px-6 py-4">{new Date(u.createdAt).toLocaleDateString()}</td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                            u.role === "ADMIN" ? "bg-rouge/10 text-rouge" : "bg-ink/5 text-ink/70"
+                          }`}>
+                            {u.role}
+                          </span>
+                        </td>
                         <td className="px-6 py-4 flex justify-end gap-4">
                           <button disabled={busy} onClick={() => { setEditingUserId(u.id); setEditFormData(u); }} className="text-ink/40 hover:text-ink transition"><Pencil size={16} /></button>
                           <button disabled={busy} onClick={() => setDeletingUserId(u.id)} className="text-rouge/60 hover:text-[#9d2626] transition"><Trash2 size={16} /></button>

@@ -1,15 +1,17 @@
 import Link from "next/link";
-import { getCurrentUserId } from "@/lib/auth";
+import { getCurrentUserId, isAdmin } from "@/lib/auth";
 import { LogoutButton } from "@/components/layout/LogoutButton";
 import { Logo } from "./Logo";
 
-export function Header() {
+export async function Header() {
   const userId = getCurrentUserId();
+  const isUserAdmin = await isAdmin();
+  
   const navItems = [
     { href: "/discover", label: "Decouvrir" },
     { href: "/map", label: "Map" },
     { href: "/collections", label: "Collections" },
-    { href: "/admin", label: "Admin" }
+    ...(isUserAdmin ? [{ href: "/admin", label: "Admin" }] : [])
   ];
 
   return (

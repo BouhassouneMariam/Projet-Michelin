@@ -194,6 +194,28 @@ async function main() {
     });
   }
 
+  const { seedQuestions } = await import("../data/seed-questions");
+  for (const q of seedQuestions) {
+    const { options, ...questionData } = q;
+    const createdQuestion = await prisma.question.upsert({
+      where: { key: q.key },
+      update: questionData,
+      create: questionData
+    });
+
+    for (const opt of options) {
+      await prisma.questionOption.upsert({
+        where: { id: `${q.key}-${opt.value}` },
+        update: opt,
+        create: {
+          id: `${q.key}-${opt.value}`,
+          ...opt,
+          questionId: createdQuestion.id
+        }
+      });
+    }
+  }
+
   console.log("Seed completed");
 }
 
