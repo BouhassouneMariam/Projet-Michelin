@@ -33,6 +33,8 @@ export async function createRestaurant(data: any) {
       cuisine: data.cuisine,
       chefName: data.chefName,
       imageUrl: data.imageUrl,
+      latitude: data.latitude ? parseFloat(data.latitude) : null,
+      longitude: data.longitude ? parseFloat(data.longitude) : null,
     }
   });
   revalidatePath("/admin");
@@ -51,6 +53,8 @@ export async function updateRestaurant(id: string, data: any) {
       cuisine: data.cuisine,
       chefName: data.chefName,
       imageUrl: data.imageUrl,
+      latitude: data.latitude ? parseFloat(data.latitude) : null,
+      longitude: data.longitude ? parseFloat(data.longitude) : null,
     }
   });
   revalidatePath("/admin");
