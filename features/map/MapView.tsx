@@ -23,6 +23,13 @@ type RestaurantWithDistance = RestaurantDto & {
   distanceKm?: number;
 };
 
+type RestaurantCluster = {
+  key: string;
+  lat: number;
+  lng: number;
+  items: RestaurantWithDistance[];
+};
+
 const awardLabels: Record<string, string> = {
   SELECTED: "Selected",
   BIB_GOURMAND: "Bib",
@@ -38,7 +45,7 @@ const awardTone: Record<string, string> = {
   ONE_STAR: "#d6b25e",
   GREEN_STAR: "#425a46",
   BIB_GOURMAND: "#c9702b",
-  SELECTED: "#12100d"
+  SELECTED: "#8f6b46"
 };
 
 function distanceInKm(from: LatLng, to: LatLng) {
@@ -69,6 +76,61 @@ function formatAward(award: string) {
   return awardLabels[award] || award.replaceAll("_", " ");
 }
 
+function getClusterStep(zoom: number) {
+  if (zoom >= 11) return 0;
+  if (zoom >= 9) return 0.18;
+  if (zoom >= 7) return 0.42;
+  if (zoom >= 5) return 0.9;
+  return 1.6;
+}
+
+function clusterRestaurants(
+  restaurants: RestaurantWithDistance[],
+  zoom: number
+): RestaurantCluster[] {
+  const step = getClusterStep(zoom);
+
+  if (step === 0) {
+    return restaurants.map((restaurant) => ({
+      key: restaurant.id,
+      lat: restaurant.latitude as number,
+      lng: restaurant.longitude as number,
+      items: [restaurant],
+    }));
+  }
+
+  const buckets = new Map<string, RestaurantCluster>();
+
+  for (const restaurant of restaurants) {
+    const lat = restaurant.latitude as number;
+    const lng = restaurant.longitude as number;
+    const latBucket = Math.round(lat / step);
+    const lngBucket = Math.round(lng / step);
+    const key = `${latBucket}:${lngBucket}`;
+    const current = buckets.get(key);
+
+    if (current) {
+      current.items.push(restaurant);
+      current.lat =
+        current.items.reduce((sum, item) => sum + (item.latitude as number), 0) /
+        current.items.length;
+      current.lng =
+        current.items.reduce((sum, item) => sum + (item.longitude as number), 0) /
+        current.items.length;
+      continue;
+    }
+
+    buckets.set(key, {
+      key,
+      lat,
+      lng,
+      items: [restaurant],
+    });
+  }
+
+  return Array.from(buckets.values());
+}
+
 function makeRestaurantIcon(leaflet: LeafletModule, restaurant: RestaurantDto) {
   const color = awardTone[restaurant.award] || "#12100d";
   const label =
@@ -82,10 +144,22 @@ function makeRestaurantIcon(leaflet: LeafletModule, restaurant: RestaurantDto) {
 
   return leaflet.divIcon({
     className: "michelin-map-marker",
-    html: `<span class="michelin-map-marker-dot" style="background:${color}"><span>${label}</span></span>`,
-    iconSize: [34, 34],
-    iconAnchor: [17, 17],
+    html: `<span class="michelin-map-marker-dot ${label ? "has-label" : "is-selected"}" style="background:${color}"><span>${label}</span></span>`,
+    iconSize: [30, 30],
+    iconAnchor: [15, 15],
     popupAnchor: [0, -18]
+  });
+}
+
+function makeClusterIcon(leaflet: LeafletModule, count: number) {
+  const size =
+    count >= 20 ? "large" : count >= 8 ? "medium" : "small";
+
+  return leaflet.divIcon({
+    className: "michelin-cluster-container",
+    html: `<span class="michelin-cluster-icon ${size}"><span>${count}</span></span>`,
+    iconSize: [52, 52],
+    iconAnchor: [26, 26],
   });
 }
 
@@ -114,6 +188,7 @@ export function MapView({ restaurants }: { restaurants: RestaurantDto[] }) {
   const [locating, setLocating] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<LatLng | null>(null);
+  const [mapZoom, setMapZoom] = useState(6);
   const [activeRestaurantId, setActiveRestaurantId] = useState<string | null>(
     null
   );
@@ -243,9 +318,14 @@ export function MapView({ restaurants }: { restaurants: RestaurantDto[] }) {
         .addTo(map);
 
       leaflet.control.zoom({ position: "bottomright" }).addTo(map);
+
       markerLayerRef.current = leaflet.layerGroup().addTo(map);
       userLayerRef.current = leaflet.layerGroup().addTo(map);
       map.setView([center.lat, center.lng], 6);
+      setMapZoom(map.getZoom());
+      map.on("zoomend", () => {
+        setMapZoom(map.getZoom());
+      });
       mapRef.current = map;
 
       window.setTimeout(() => map.invalidateSize(), 120);
@@ -280,29 +360,61 @@ export function MapView({ restaurants }: { restaurants: RestaurantDto[] }) {
     }
 
     markerLayer.clearLayers();
+    const clustered = clusterRestaurants(visible, mapZoom);
 
-    const markerBounds: Array<[number, number]> = [];
+    for (const cluster of clustered) {
+      if (cluster.items.length === 1) {
+        const restaurant = cluster.items[0];
+        const coordinates = getCoordinates(restaurant);
+        const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${coordinates.lat},${coordinates.lng}`;
 
-    for (const restaurant of visible) {
-      const coordinates = getCoordinates(restaurant);
-      markerBounds.push([coordinates.lat, coordinates.lng]);
+        leaflet
+          .marker([coordinates.lat, coordinates.lng], {
+            icon: makeRestaurantIcon(leaflet, restaurant)
+          })
+          .bindPopup(
+            `<div class="michelin-popup">
+              <strong>${restaurant.name}</strong><br/>
+              <span>${formatAward(restaurant.award)} - ${restaurant.cuisine || restaurant.city}</span>
+              <div class="michelin-popup-actions">
+                <a href="/restaurants/${restaurant.id}" class="michelin-popup-link">Voir détails</a>
+                <a href="${gmapsUrl}" target="_blank" rel="noopener noreferrer" class="michelin-popup-gmaps">
+                  Google Maps
+                </a>
+              </div>
+            </div>`
+          )
+          .on("click", () => {
+            setActiveRestaurantId(restaurant.id);
+          })
+          .addTo(markerLayer);
+        continue;
+      }
 
       leaflet
-        .marker([coordinates.lat, coordinates.lng], {
-          icon: makeRestaurantIcon(leaflet, restaurant)
+        .marker([cluster.lat, cluster.lng], {
+          icon: makeClusterIcon(leaflet, cluster.items.length)
         })
-        .bindPopup(
-          `<strong>${restaurant.name}</strong><br/><span>${formatAward(
-            restaurant.award
-          )} - ${restaurant.cuisine || restaurant.city}</span><br/><a href="/restaurants/${
-            restaurant.id
-          }">Open restaurant</a>`
-        )
         .on("click", () => {
-          setActiveRestaurantId(restaurant.id);
+          map.flyTo([cluster.lat, cluster.lng], Math.min(mapZoom + 2, 13), {
+            duration: 0.45,
+          });
         })
         .addTo(markerLayer);
     }
+  }, [mapZoom, visible]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+
+    if (!map || visible.length === 0) {
+      return;
+    }
+
+    const markerBounds = visible.map((restaurant) => [
+      restaurant.latitude as number,
+      restaurant.longitude as number,
+    ]) as Array<[number, number]>;
 
     if (markerBounds.length > 0) {
       map.fitBounds(markerBounds, {

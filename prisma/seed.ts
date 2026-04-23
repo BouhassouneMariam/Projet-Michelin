@@ -20,8 +20,8 @@ async function main() {
 
     await prisma.user.upsert({
       where: { id: user.id },
-      update: userData,
-      create: userData
+      update: user as any,
+      create: user as any
     });
   }
 
