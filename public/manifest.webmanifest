@@ -1,25 +1,65 @@
 {
+  "id": "/",
   "name": "Michelin Next Gen",
   "short_name": "Michelin",
-  "description": "Personal Michelin restaurant collections for mobile.",
+  "description": "Le Guide Michelin interactif pour decouvrir, filtrer et retrouver la bonne table.",
   "start_url": "/",
   "scope": "/",
+  "lang": "fr",
+  "dir": "ltr",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
   "orientation": "portrait",
   "background_color": "#f7f2e8",
   "theme_color": "#12100d",
+  "categories": ["food", "lifestyle", "travel"],
+  "prefer_related_applications": false,
   "icons": [
     {
-      "src": "/icons/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/icons/pwa-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/pwa-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "any"
     },
     {
       "src": "/icons/maskable-icon.svg",
-      "sizes": "any",
+      "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Decouvrir",
+      "short_name": "Decouvrir",
+      "description": "Ouvrir directement le livre interactif Michelin.",
+      "url": "/discover",
+      "icons": [
+        {
+          "src": "/icons/pwa-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Carte",
+      "short_name": "Carte",
+      "description": "Afficher les restaurants Michelin autour de toi.",
+      "url": "/map",
+      "icons": [
+        {
+          "src": "/icons/pwa-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     }
   ]
 }
