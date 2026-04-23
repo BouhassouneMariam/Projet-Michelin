@@ -9,7 +9,12 @@ import {
   Star
 } from "lucide-react";
 import { BadgePill } from "@/components/shared/BadgePill";
+import { LikeButton } from "@/components/shared/LikeButton";
+import { BackButton } from "@/components/shared/BackButton";
 import { getRestaurantById } from "@/features/restaurants/restaurant.queries";
+import { getUserLikedRestaurantIds } from "@/features/social/social.service";
+import { getCurrentUserId } from "@/lib/auth";
+import {SaveButton} from "@/components/collections/SaveButton";
 
 export default async function RestaurantDetailPage({
   params
@@ -32,6 +37,9 @@ export default async function RestaurantDetailPage({
     `A Michelin-selected ${restaurant.cuisine || "restaurant"} in ${
       restaurant.city
     }.`;
+  const userId = getCurrentUserId();
+  const likedIds = userId ? await getUserLikedRestaurantIds(userId) : [];
+  const isLiked = likedIds.includes(restaurant.id);
 
   return (
     <main className="pb-8">
@@ -47,13 +55,7 @@ export default async function RestaurantDetailPage({
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
         <div className="relative z-10 flex min-h-[48vh] flex-col justify-between px-5 py-6">
-          <Link
-            href="/discover"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 backdrop-blur"
-            aria-label="Back"
-          >
-            <ArrowLeft size={18} />
-          </Link>
+          <BackButton fallback="/discover" />
 
           <div className="space-y-3">
             <BadgePill icon={<Star size={14} />} tone="dark">
@@ -96,7 +98,14 @@ export default async function RestaurantDetailPage({
             <p className="text-xs uppercase tracking-[0.16em] text-ink/40">
               Social
             </p>
-            <p className="mt-1 font-semibold">{restaurant.likesCount} likes</p>
+            <div className="mt-1 flex items-center justify-between gap-3">
+              <LikeButton
+                restaurantId={restaurant.id}
+                initialLiked={isLiked}
+                initialCount={restaurant.likesCount}
+              />
+              <SaveButton restaurantId={restaurant.id}/>
+            </div>
           </div>
         </div>
 
@@ -155,3 +164,4 @@ export default async function RestaurantDetailPage({
     </main>
   );
 }
+

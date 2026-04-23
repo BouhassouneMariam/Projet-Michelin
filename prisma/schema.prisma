@@ -37,6 +37,11 @@ enum TagType {
   FEATURE
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
 model User {
   id           String  @id @default(cuid())
   name         String
@@ -45,6 +50,8 @@ model User {
   bio          String?
   isPublic     Boolean @default(true)
   isAmbassador Boolean @default(false)
+  passwordHash String
+  role         Role    @default(USER)
 
   collections Collection[]
   likes       RestaurantLike[]
@@ -189,4 +196,28 @@ model UserBadge {
   earnedAt DateTime @default(now())
 
   @@id([userId, badgeId])
+}
+
+model Question {
+  id        String           @id @default(cuid())
+  key       String           @unique
+  label     String
+  question  String
+  intro     String?
+  options   QuestionOption[]
+  order     Int              @default(0)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model QuestionOption {
+  id          String   @id @default(cuid())
+  label       String
+  value       String
+  description String?
+  iconName    String?  @default("Sparkles")
+  questionId  String
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

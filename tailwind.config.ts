@@ -9,14 +9,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: "#12100d",
-        porcelain: "#f7f2e8",
-        champagne: "#e7d2a4",
-        rouge: "#b22d2d",
+        ink: "#191919",
+        porcelain: "#F5F4F2",
+        champagne: "#FFFFFF",
+        rouge: "#BA0B2F",
         moss: "#425a46"
       },
       boxShadow: {
-        premium: "0 24px 80px rgba(18, 16, 13, 0.18)"
+        premium: "0 2px 12px rgba(0, 0, 0, 0.04)"
       }
     }
   },

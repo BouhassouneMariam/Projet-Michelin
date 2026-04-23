@@ -1,42 +1,43 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { BookmarkCheck, BookmarkPlus, Heart, MapPin, Star } from "lucide-react";
+import { MapPin, Star } from "lucide-react";
 import { motion } from "framer-motion";
-import { DEFAULT_COLLECTION_ID } from "@/lib/demo-user";
+import { SaveButton } from "@/components/collections/SaveButton";
+import { LikeButton } from "@/components/shared/LikeButton";
 import type { RestaurantDto } from "@/types/api";
 
 export function RestaurantCard({
   restaurant,
-  compact = false
+  compact = false,
+  initialLiked = false
 }: {
   restaurant: RestaurantDto;
   compact?: boolean;
+  initialLiked?: boolean;
 }) {
-  const [saved, setSaved] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const [authPromptVisible, setAuthPromptVisible] = useState(false);
+  const promptTimerRef = useRef<number | null>(null);
 
-  async function saveToCollection() {
-    setSaving(true);
-
-    try {
-      const response = await fetch(`/api/collections/${DEFAULT_COLLECTION_ID}/items`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          restaurantId: restaurant.id
-        })
-      });
-
-      if (response.ok) {
-        setSaved(true);
+  useEffect(() => {
+    return () => {
+      if (promptTimerRef.current) {
+        window.clearTimeout(promptTimerRef.current);
       }
-    } finally {
-      setSaving(false);
+    };
+  }, []);
+
+  function showAuthPrompt() {
+    setAuthPromptVisible(true);
+
+    if (promptTimerRef.current) {
+      window.clearTimeout(promptTimerRef.current);
     }
+
+    promptTimerRef.current = window.setTimeout(() => {
+      setAuthPromptVisible(false);
+    }, 3600);
   }
 
   return (
@@ -44,7 +45,7 @@ export function RestaurantCard({
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.34 }}
-      className="overflow-hidden rounded-lg border border-ink/10 bg-white/70 shadow-sm backdrop-blur"
+      className="relative overflow-hidden rounded-lg border border-ink/10 bg-white/70 shadow-sm backdrop-blur"
     >
       <Link href={`/restaurants/${restaurant.id}`} className="block">
         <div className={compact ? "h-44" : "h-56"}>
@@ -100,20 +101,29 @@ export function RestaurantCard({
         </div>
 
         <div className="flex items-center justify-between gap-3 border-t border-ink/10 pt-3">
-          <span className="inline-flex items-center gap-1 text-sm font-semibold text-ink/60">
-            <Heart size={15} />
-            {restaurant.likesCount}
-          </span>
-          <button
-            onClick={saveToCollection}
-            disabled={saving || saved}
-            className="inline-flex h-10 items-center gap-2 rounded-lg bg-rouge px-3 text-sm font-semibold text-white transition hover:bg-[#9d2626] disabled:bg-moss"
-          >
-            {saved ? <BookmarkCheck size={16} /> : <BookmarkPlus size={16} />}
-            {saved ? "Saved" : "Save"}
-          </button>
+          <LikeButton
+            restaurantId={restaurant.id}
+            initialLiked={initialLiked}
+            initialCount={restaurant.likesCount}
+            onAuthRequired={showAuthPrompt}
+          />
+          <SaveButton restaurantId={restaurant.id} onAuthRequired={showAuthPrompt} />
         </div>
       </div>
+
+      {authPromptVisible ? (
+        <div className="absolute bottom-[72px] right-4 z-20 max-w-[220px] rounded-lg border border-ink/10 bg-white px-3 py-2 text-xs font-medium leading-5 text-ink shadow-premium">
+          Connectez-vous pour aimer ou sauvegarder ce restaurant.
+          <Link
+            href="/login"
+            prefetch={false}
+            className="ml-1 font-semibold text-rouge underline-offset-2 hover:underline"
+          >
+            Se connecter
+          </Link>
+        </div>
+      ) : null}
+
     </motion.article>
   );
 }

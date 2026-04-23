@@ -16,6 +16,11 @@ const CSV_PATH = path.join(
   "michelin-my-maps.csv"
 );
 
+const MAP_SOURCE = "ngshiheng/michelin-my-maps";
+const STAR_SOURCE = "joseanmarsol/Michelin-Star-restaurants";
+const MICHELIN_MAP_GITHUB_URL =
+  "https://github.com/ngshiheng/michelin-my-maps";
+
 const MAP_CITIES = new Set([
   "Bangkok",
   "Barcelona",
@@ -39,7 +44,7 @@ const MAP_CITIES = new Set([
   "Washington"
 ]);
 
-type MichelinMapRow = {
+export type MichelinMapRow = {
   name: string;
   address: string | null;
   city: string;
@@ -107,13 +112,83 @@ function slugify(value: string) {
     .slice(0, 90);
 }
 
+function decodeMaybeMojibake(value: string) {
+  if (!/[ÃÂ]|â[€œ€˜€™€“”]|ð/i.test(value)) {
+    return value;
+  }
+
+  const decoded = Buffer.from(value, "latin1").toString("utf8");
+
+  return decoded.includes("�") ? value : decoded;
+}
+
+function cleanText(value: string | undefined) {
+  return decodeMaybeMojibake(value ?? "").trim();
+}
+
+function optionalText(value: string | undefined) {
+  const cleaned = cleanText(value);
+
+  return cleaned.length > 0 ? cleaned : null;
+}
+
 function parseLocation(location: string) {
-  const parts = location.split(",").map((part) => part.trim()).filter(Boolean);
+  const parts = cleanText(location)
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean);
 
   return {
     city: parts[0] || "Unknown",
     country: parts[parts.length - 1] || "Unknown"
   };
+}
+
+function normalizeForMatch(value: string | null | undefined) {
+  return cleanText(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
+function normalizeCountryForMatch(value: string | null | undefined) {
+  const normalized = normalizeForMatch(value);
+
+  const aliases: Record<string, string> = {
+    espana: "spain",
+    hongkong: "hong kong",
+    "hong kong sar china": "hong kong",
+    italia: "italy",
+    "macau sar china": "macau",
+    "republic of ireland": "ireland",
+    "south corea": "south korea",
+    usa: "united states",
+    "united states of america": "united states"
+  };
+
+  return aliases[normalized] ?? normalized;
+}
+
+function restaurantMatchKey(input: {
+  name: string;
+  city: string;
+  country: string | null;
+}) {
+  return [
+    normalizeForMatch(input.name),
+    normalizeForMatch(input.city),
+    normalizeCountryForMatch(input.country)
+  ].join("|");
+}
+
+export function buildMichelinMapExternalId(row: Pick<MichelinMapRow, "url" | "name" | "address" | "city">) {
+  return `michelin-map-${slugify(
+    row.url || `${row.name}-${row.address}-${row.city}`
+  )}`;
 }
 
 function awardFromValue(value: string, greenStar: boolean) {
@@ -211,7 +286,7 @@ function tagsFor(row: MichelinMapRow) {
   return tags;
 }
 
-function readMichelinMapCsv() {
+export function readMichelinMapCsv(options: { onlyMapCities?: boolean } = {}) {
   if (!existsSync(CSV_PATH)) {
     return [];
   }
@@ -246,7 +321,7 @@ function readMichelinMapCsv() {
       if (
         !name ||
         !parsedLocation.city ||
-        !MAP_CITIES.has(parsedLocation.city) ||
+        (options.onlyMapCities && !MAP_CITIES.has(parsedLocation.city)) ||
         Number.isNaN(longitude) ||
         Number.isNaN(latitude)
       ) {
@@ -254,23 +329,59 @@ function readMichelinMapCsv() {
       }
 
       return {
-        name,
-        address: address || null,
+        name: cleanText(name),
+        address: optionalText(address),
         city: parsedLocation.city,
         country: parsedLocation.country,
-        price: price || null,
-        cuisine: cuisine || null,
+        price: optionalText(price),
+        cuisine: optionalText(cuisine),
         longitude,
         latitude,
-        phone: phone || null,
-        url: url || null,
-        websiteUrl: websiteUrl || null,
-        award: award || "Selected",
+        phone: optionalText(phone),
+        url: optionalText(url),
+        websiteUrl: optionalText(websiteUrl),
+        award: cleanText(award) || "Selected",
         greenStar: greenStarRaw === "1",
-        description: description || null
+        description: optionalText(description)
       };
     })
     .filter((row): row is MichelinMapRow => row !== null);
+}
+
+function restaurantDataFromMapRow(
+  row: MichelinMapRow,
+  options: { includeAward: boolean }
+) {
+  const data: Prisma.RestaurantUpdateInput = {
+    description:
+      row.description ||
+      `A Michelin ${row.award.toLowerCase()} restaurant in ${row.city}, ${row.country}.`,
+    city: row.city,
+    country: row.country,
+    address: row.address,
+    latitude: row.latitude,
+    longitude: row.longitude,
+    cuisine: row.cuisine,
+    priceLabel: row.price,
+    budget: budgetFromPrice(row.price),
+    sourceUrl: row.url || MICHELIN_MAP_GITHUB_URL
+  };
+
+  if (options.includeAward) {
+    data.award = awardFromValue(row.award, row.greenStar);
+  }
+
+  return data;
+}
+
+async function runInChunks<T>(
+  items: T[],
+  size: number,
+  handler: (chunk: T[]) => Promise<unknown>
+) {
+  for (let index = 0; index < items.length; index += size) {
+    await handler(items.slice(index, index + size));
+  }
 }
 
 export async function seedMichelinMapRestaurants(prisma: PrismaClient) {
@@ -284,15 +395,49 @@ export async function seedMichelinMapRestaurants(prisma: PrismaClient) {
   const restaurants: Prisma.RestaurantCreateManyInput[] = [];
   const tagBySlug = new Map<string, ImportTag>();
   const tagSlugsByExternalId = new Map<string, string[]>();
+  const restaurantIdByExternalId = new Map<string, string>();
+  const duplicateMapExternalIds: string[] = [];
+  const existingStarRestaurants = await prisma.restaurant.findMany({
+    where: {
+      source: STAR_SOURCE
+    },
+    select: {
+      id: true,
+      name: true,
+      city: true,
+      country: true
+    }
+  });
+  const starRestaurantByMatchKey = new Map(
+    existingStarRestaurants.map((restaurant) => [
+      restaurantMatchKey(restaurant),
+      restaurant
+    ])
+  );
+  const starEnrichments: Array<{
+    restaurantId: string;
+    row: MichelinMapRow;
+    externalId: string;
+  }> = [];
 
   for (const row of rows) {
-    const externalId = `michelin-map-${slugify(
-      row.url || `${row.name}-${row.address}-${row.city}`
-    )}`;
+    const externalId = buildMichelinMapExternalId(row);
     const award = awardFromValue(row.award, row.greenStar);
     const tags = tagsFor(row);
+    const existingStarRestaurant = starRestaurantByMatchKey.get(
+      restaurantMatchKey(row)
+    );
 
-    restaurants.push({
+    if (existingStarRestaurant) {
+      starEnrichments.push({
+        restaurantId: existingStarRestaurant.id,
+        row,
+        externalId
+      });
+      restaurantIdByExternalId.set(externalId, existingStarRestaurant.id);
+      duplicateMapExternalIds.push(externalId);
+    } else if (MAP_CITIES.has(row.city)) {
+      restaurants.push({
       id: externalId,
       name: row.name,
       description:
@@ -308,10 +453,11 @@ export async function seedMichelinMapRestaurants(prisma: PrismaClient) {
       priceLabel: row.price,
       budget: budgetFromPrice(row.price),
       award,
-      source: "ngshiheng/michelin-my-maps",
-      sourceUrl: row.url || "https://github.com/ngshiheng/michelin-my-maps",
+      source: MAP_SOURCE,
+      sourceUrl: row.url || MICHELIN_MAP_GITHUB_URL,
       externalId
     });
+    }
 
     for (const tag of tags) {
       addTag(tagBySlug, tag);
@@ -323,10 +469,61 @@ export async function seedMichelinMapRestaurants(prisma: PrismaClient) {
     );
   }
 
-  await prisma.restaurant.createMany({
-    data: restaurants,
-    skipDuplicates: true
-  });
+  if (duplicateMapExternalIds.length > 0) {
+    await runInChunks(Array.from(new Set(duplicateMapExternalIds)), 250, (chunk) =>
+      prisma.restaurant.deleteMany({
+        where: {
+          source: MAP_SOURCE,
+          externalId: {
+            in: chunk
+          }
+        }
+      })
+    );
+  }
+
+  if (starEnrichments.length > 0) {
+    await runInChunks(starEnrichments, 100, (chunk) =>
+      prisma.$transaction(
+        chunk.map((item) =>
+          prisma.restaurant.update({
+            where: { id: item.restaurantId },
+            data: restaurantDataFromMapRow(item.row, { includeAward: false })
+          })
+        )
+      )
+    );
+  }
+
+  if (restaurants.length > 0) {
+    await prisma.restaurant.createMany({
+      data: restaurants,
+      skipDuplicates: true
+    });
+
+    await runInChunks(restaurants, 100, (chunk) =>
+      prisma.$transaction(
+        chunk.map((restaurant) =>
+          prisma.restaurant.update({
+            where: { externalId: restaurant.externalId as string },
+            data: {
+              description: restaurant.description,
+              city: restaurant.city,
+              country: restaurant.country,
+              address: restaurant.address,
+              latitude: restaurant.latitude,
+              longitude: restaurant.longitude,
+              cuisine: restaurant.cuisine,
+              priceLabel: restaurant.priceLabel,
+              budget: restaurant.budget,
+              award: restaurant.award,
+              sourceUrl: restaurant.sourceUrl
+            }
+          })
+        )
+      )
+    );
+  }
 
   await prisma.tag.createMany({
     data: Array.from(tagBySlug.values()),
@@ -358,15 +555,21 @@ export async function seedMichelinMapRestaurants(prisma: PrismaClient) {
     })
   ]);
 
+  for (const restaurant of createdRestaurants) {
+    if (restaurant.externalId) {
+      restaurantIdByExternalId.set(restaurant.externalId, restaurant.id);
+    }
+  }
+
   const tagIdBySlug = new Map(createdTags.map((tag) => [tag.slug, tag.id]));
   const restaurantTags: Prisma.RestaurantTagCreateManyInput[] = [];
 
-  for (const restaurant of createdRestaurants) {
-    if (!restaurant.externalId) {
+  for (const [externalId, slugs] of tagSlugsByExternalId) {
+    const restaurantId = restaurantIdByExternalId.get(externalId);
+
+    if (!restaurantId) {
       continue;
     }
-
-    const slugs = tagSlugsByExternalId.get(restaurant.externalId) ?? [];
 
     for (const slug of slugs) {
       const tagId = tagIdBySlug.get(slug);
@@ -376,7 +579,7 @@ export async function seedMichelinMapRestaurants(prisma: PrismaClient) {
       }
 
       restaurantTags.push({
-        restaurantId: restaurant.id,
+        restaurantId,
         tagId
       });
     }
@@ -390,6 +593,6 @@ export async function seedMichelinMapRestaurants(prisma: PrismaClient) {
   }
 
   console.log(
-    `Michelin map import completed: ${restaurants.length} geolocated restaurants, ${tagBySlug.size} tags.`
+    `Michelin map import completed: ${restaurants.length} geolocated restaurants, ${starEnrichments.length} enriched star restaurants, ${tagBySlug.size} tags.`
   );
 }

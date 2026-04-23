@@ -10,12 +10,14 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "prisma db seed",
-    "db:reset": "prisma migrate reset --force"
+    "db:reset": "prisma migrate reset --force",
+    "michelin:images": "tsx data/michelin/enrich-michelin-images.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "@react-three/drei": "^9.115.0",
     "@react-three/fiber": "^8.17.10",
+    "argon2": "^0.44.0",
     "clsx": "^2.1.1",
     "framer-motion": "^11.11.17",
     "leaflet": "^1.9.4",

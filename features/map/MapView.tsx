@@ -106,7 +106,7 @@ export function MapView({ restaurants }: { restaurants: RestaurantDto[] }) {
   const userLayerRef = useRef<import("leaflet").LayerGroup | null>(null);
 
   const [query, setQuery] = useState("");
-  const [city, setCity] = useState("Paris");
+  const [city, setCity] = useState("all");
   const [award, setAward] = useState("all");
   const [budget, setBudget] = useState("all");
   const [radiusKm, setRadiusKm] = useState(10);
@@ -146,14 +146,9 @@ export function MapView({ restaurants }: { restaurants: RestaurantDto[] }) {
   );
 
   const center = useMemo(() => {
-    const first = mapReadyRestaurants[0];
-
-    if (!first) {
-      return { lat: 48.8566, lng: 2.3522 };
-    }
-
-    return getCoordinates(first);
-  }, [mapReadyRestaurants]);
+    // Default to center of France
+    return { lat: 46.2276, lng: 2.2137 };
+  }, []);
 
   const visible = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -182,7 +177,9 @@ export function MapView({ restaurants }: { restaurants: RestaurantDto[] }) {
           restaurant.city,
           restaurant.country,
           restaurant.cuisine,
-          restaurant.award
+          restaurant.award,
+          restaurant.chefName,
+          restaurant.description
         ]
           .filter(Boolean)
           .some((value) => value?.toLowerCase().includes(normalizedQuery));
@@ -248,7 +245,7 @@ export function MapView({ restaurants }: { restaurants: RestaurantDto[] }) {
       leaflet.control.zoom({ position: "bottomright" }).addTo(map);
       markerLayerRef.current = leaflet.layerGroup().addTo(map);
       userLayerRef.current = leaflet.layerGroup().addTo(map);
-      map.setView([center.lat, center.lng], 12);
+      map.setView([center.lat, center.lng], 6);
       mapRef.current = map;
 
       window.setTimeout(() => map.invalidateSize(), 120);
@@ -264,6 +261,14 @@ export function MapView({ restaurants }: { restaurants: RestaurantDto[] }) {
       userLayerRef.current = null;
     };
   }, [center.lat, center.lng]);
+
+  useEffect(() => {
+    // Auto-locate on mount
+    const timer = setTimeout(() => {
+      locateUser();
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const leaflet = leafletRef.current;
