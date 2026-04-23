@@ -1,6 +1,7 @@
 import {
   FriendshipStatus,
-  PrismaClient
+  PrismaClient,
+  Role
 } from "@prisma/client";
 import { seedCollections } from "../data/seed-collections";
 import { seedMichelinRestaurants } from "../data/michelin/import-michelin";
@@ -12,10 +13,15 @@ const prisma = new PrismaClient();
 
 async function main() {
   for (const user of seedUsers) {
+    const userData = {
+      ...user,
+      role: user.role === "ADMIN" ? Role.ADMIN : Role.USER
+    };
+
     await prisma.user.upsert({
       where: { id: user.id },
-      update: user,
-      create: user
+      update: userData,
+      create: userData
     });
   }
 
