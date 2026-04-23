@@ -7,9 +7,11 @@ import { CollectionCard } from "./CollectionCard";
 import type { CollectionDto } from "@/types/api";
 
 export function CollectionList({
-  initialCollections
+  initialCollections,
+  onCollectionCreated
 }: {
   initialCollections: CollectionDto[];
+  onCollectionCreated?: () => void;
 }) {
   const [collections, setCollections] = useState(initialCollections);
   const [showForm, setShowForm] = useState(false);
@@ -40,6 +42,7 @@ export function CollectionList({
         setCollections((prev) => [collection, ...prev]);
         setFormData({ title: "", description: "", coverUrl: "", isPublic: true });
         setShowForm(false);
+        onCollectionCreated?.();
       }
     } finally {
       setCreating(false);

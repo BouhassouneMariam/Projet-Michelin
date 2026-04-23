@@ -38,7 +38,7 @@ export function CollectionActions({
       });
 
       if (res.ok) {
-        router.push("/collections");
+        router.push("/profile");
         router.refresh();
       }
     } finally {
