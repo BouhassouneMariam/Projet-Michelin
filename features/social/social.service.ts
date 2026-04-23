@@ -167,18 +167,19 @@ export async function getUserLikedRestaurantIds(
   return likes.map((l) => l.restaurantId);
 }
 
-/** Build a virtual "Liked" collection from the user's likes */
-export async function getLikedCollection(
-  userId: string
-): Promise<import("@/types/api").CollectionDto | null> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId }
-  });
+type LikedCollectionOwner = {
+  id: string;
+  name: string;
+  username: string;
+  avatarUrl: string | null;
+  bio: string | null;
+  isAmbassador: boolean;
+  likedCollectionIsPublic: boolean;
+};
 
-  if (!user) return null;
-
+async function buildLikedCollection(user: LikedCollectionOwner) {
   const likes = await prisma.restaurantLike.findMany({
-    where: { userId },
+    where: { userId: user.id },
     include: {
       restaurant: {
         include: {
@@ -203,7 +204,7 @@ export async function getLikedCollection(
     title: "Mes coups de cœur",
     description: "Tous les restaurants que j'ai aimés.",
     coverUrl: likes[0]?.restaurant.imageUrl ?? null,
-    isPublic: false,
+    isPublic: user.likedCollectionIsPublic,
     owner: {
       id: user.id,
       name: user.name,
@@ -219,5 +220,60 @@ export async function getLikedCollection(
         like.restaurant as RestaurantWithRelations
       )
     }))
-  };
+  } satisfies import("@/types/api").CollectionDto;
+}
+
+/** Build a virtual "Liked" collection from the user's likes */
+export async function getLikedCollection(
+  userId: string
+): Promise<import("@/types/api").CollectionDto | null> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      username: true,
+      avatarUrl: true,
+      bio: true,
+      isAmbassador: true,
+      likedCollectionIsPublic: true
+    }
+  });
+
+  if (!user) return null;
+
+  return buildLikedCollection(user);
+}
+
+export async function getLikedCollectionByUsername(
+  username: string
+): Promise<import("@/types/api").CollectionDto | null> {
+  const user = await prisma.user.findUnique({
+    where: { username },
+    select: {
+      id: true,
+      name: true,
+      username: true,
+      avatarUrl: true,
+      bio: true,
+      isAmbassador: true,
+      likedCollectionIsPublic: true
+    }
+  });
+
+  if (!user) return null;
+
+  return buildLikedCollection(user);
+}
+
+export async function updateLikedCollectionVisibility(
+  userId: string,
+  isPublic: boolean
+): Promise<import("@/types/api").CollectionDto | null> {
+  await prisma.user.update({
+    where: { id: userId },
+    data: { likedCollectionIsPublic: isPublic }
+  });
+
+  return getLikedCollection(userId);
 }

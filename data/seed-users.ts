@@ -10,6 +10,7 @@ export const seedUsers = [
     passwordHash: DEMO_PASSWORD_HASH,
     avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&q=80",
     bio: "Paris-based food explorer building her next date-night collection.",
+    likedCollectionIsPublic: false,
     isAmbassador: false
   },
   {
@@ -19,6 +20,7 @@ export const seedUsers = [
     passwordHash: DEMO_PASSWORD_HASH,
     avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
     bio: "Creative director, counter seats, natural wine and weekend trips.",
+    likedCollectionIsPublic: false,
     isAmbassador: true
   },
   {
@@ -28,6 +30,7 @@ export const seedUsers = [
     passwordHash: DEMO_PASSWORD_HASH,
     avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80",
     bio: "Keeps a list for every city.",
+    likedCollectionIsPublic: false,
     isAmbassador: false
   },
   {
@@ -37,6 +40,7 @@ export const seedUsers = [
     passwordHash: DEMO_PASSWORD_HASH,
     avatarUrl: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80",
     bio: "Tokyo, Seoul, Paris. Mostly tasting menus.",
+    likedCollectionIsPublic: false,
     isAmbassador: true
   },
   {
@@ -47,6 +51,7 @@ export const seedUsers = [
     role: "ADMIN",
     avatarUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80",
     bio: "Administrator account for Hackathon 2026.",
+    likedCollectionIsPublic: false,
     isAmbassador: false
   }
 ];

@@ -9,6 +9,7 @@ const userSelect = {
     avatarUrl: true,
     bio: true,
     isAmbassador: true,
+    role: true,
 } satisfies Prisma.UserSelect;
 
 export type UserRecord = Prisma.UserGetPayload<{
