@@ -4,6 +4,7 @@ import { FormEvent, useMemo, useState } from "react";
 import { Lock, UserRound } from "lucide-react";
 import { AuthFormCard } from "@/features/users/components/AuthFormCard";
 import { AuthInput } from "@/features/users/components/AuthInput";
+import { useAuth } from "@/features/users/AuthProvider";
 import { useAuthForm } from "@/features/users/components/useAuthForm";
 
 type RegisterFormValues = {
@@ -22,6 +23,7 @@ type RegisterResponse = {
 };
 
 export function RegisterForm() {
+  const { setAuthenticated } = useAuth();
   const { values, register } = useAuthForm<RegisterFormValues>({
     name: "",
     username: "",
@@ -68,6 +70,7 @@ export function RegisterForm() {
         return;
       }
 
+      setAuthenticated();
       window.location.assign("/");
     } catch {
       setErrorMessage("Le serveur est injoignable pour le moment.");

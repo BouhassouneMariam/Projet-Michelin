@@ -13,6 +13,7 @@ import { LikeButton } from "@/components/shared/LikeButton";
 import { getRestaurantById } from "@/features/restaurants/restaurant.queries";
 import { getUserLikedRestaurantIds } from "@/features/social/social.service";
 import { getCurrentUserId } from "@/lib/auth";
+import {SaveButton} from "@/components/collections/SaveButton";
 
 export default async function RestaurantDetailPage({
   params
@@ -102,12 +103,13 @@ export default async function RestaurantDetailPage({
             <p className="text-xs uppercase tracking-[0.16em] text-ink/40">
               Social
             </p>
-            <div className="mt-1">
+            <div className="mt-1 flex items-center justify-between gap-3">
               <LikeButton
                 restaurantId={restaurant.id}
                 initialLiked={isLiked}
                 initialCount={restaurant.likesCount}
               />
+              <SaveButton restaurantId={restaurant.id}/>
             </div>
           </div>
         </div>
