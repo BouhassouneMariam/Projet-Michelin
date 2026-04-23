@@ -40,7 +40,7 @@ self.addEventListener("fetch", (event) => {
 
   if (
     url.origin === self.location.origin &&
-    ["/login", "/register", "/collections", "/social"].some(
+    ["/login", "/register", "/profile", "/social"].some(
       (pathname) => url.pathname === pathname || url.pathname.startsWith(`${pathname}/`)
     )
   ) {
