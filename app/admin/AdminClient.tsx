@@ -2,7 +2,14 @@
 
 import { useState, useMemo } from "react";
 import { Trash2, Plus, Users, UtensilsCrossed, Pencil, Check, X, ChevronLeft, ChevronRight, Search, ArrowUpDown, BookOpen, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
+import dynamic from "next/dynamic";
+import "leaflet/dist/leaflet.css";
 import { deleteRestaurant, deleteUser, createRestaurant, updateRestaurant, updateUser, createQuestion, updateQuestion, deleteQuestion, createOption, updateOption, deleteOption } from "./actions";
+
+const MapPicker = dynamic(() => import("@/components/admin/MapPicker").then(mod => mod.MapPicker), { 
+  ssr: false,
+  loading: () => <div className="h-48 w-full animate-pulse rounded-xl bg-porcelain" />
+});
 
 const PAGE_SIZE = 15;
 
@@ -281,6 +288,15 @@ export function AdminClient({ restaurants, users, initialQuestions }: { restaura
                   <option value="GREEN_STAR">Étoile Verte</option>
                 </select>
                 <input type="url" placeholder="URL Image" className="md:col-span-2 rounded-xl border-none bg-porcelain p-3.5 text-sm ring-1 ring-inset ring-ink/10" value={formData.imageUrl} onChange={e => setFormData({...formData, imageUrl: e.target.value})} />
+                <input type="number" step="any" placeholder="Latitude" className="rounded-xl border-none bg-porcelain p-3.5 text-sm ring-1 ring-inset ring-ink/10" value={formData.latitude || ""} onChange={e => setFormData({...formData, latitude: e.target.value})} />
+                <input type="number" step="any" placeholder="Longitude" className="rounded-xl border-none bg-porcelain p-3.5 text-sm ring-1 ring-inset ring-ink/10" value={formData.longitude || ""} onChange={e => setFormData({...formData, longitude: e.target.value})} />
+                <div className="md:col-span-2">
+                  <MapPicker 
+                    lat={formData.latitude ? parseFloat(formData.latitude) : null} 
+                    lng={formData.longitude ? parseFloat(formData.longitude) : null} 
+                    onChange={(lat, lng) => setFormData({...formData, latitude: lat.toString(), longitude: lng.toString()})} 
+                  />
+                </div>
                 <textarea placeholder="Description" className="md:col-span-2 h-24 rounded-xl border-none bg-porcelain p-3.5 text-sm ring-1 ring-inset ring-ink/10" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
                 <div className="md:col-span-2 flex justify-end gap-3 mt-2">
                   <button type="button" onClick={() => setIsAdding(false)} className="rounded-xl px-5 py-2.5 text-sm font-semibold text-ink/60 transition hover:bg-ink/5">Annuler</button>
@@ -326,7 +342,18 @@ export function AdminClient({ restaurants, users, initialQuestions }: { restaura
                           </select>
                         </td>
                         <td className="px-6 py-4">
-                          <input placeholder="URL Image" className="w-full rounded bg-porcelain px-2 py-1.5 outline-none ring-1 ring-ink/20" value={editFormData.imageUrl || ""} onChange={e => setEditFormData({...editFormData, imageUrl: e.target.value})} />
+                          <div className="flex flex-col gap-1">
+                            <input placeholder="URL Image" className="w-full rounded bg-porcelain px-2 py-1.5 text-xs outline-none ring-1 ring-ink/20" value={editFormData.imageUrl || ""} onChange={e => setEditFormData({...editFormData, imageUrl: e.target.value})} />
+                            <div className="flex gap-1">
+                              <input type="number" step="any" placeholder="Lat" className="w-1/2 rounded bg-porcelain px-2 py-1.5 text-xs outline-none ring-1 ring-ink/20" value={editFormData.latitude || ""} onChange={e => setEditFormData({...editFormData, latitude: e.target.value})} />
+                              <input type="number" step="any" placeholder="Lng" className="w-1/2 rounded bg-porcelain px-2 py-1.5 text-xs outline-none ring-1 ring-ink/20" value={editFormData.longitude || ""} onChange={e => setEditFormData({...editFormData, longitude: e.target.value})} />
+                            </div>
+                            <MapPicker 
+                              lat={editFormData.latitude ? parseFloat(editFormData.latitude) : null} 
+                              lng={editFormData.longitude ? parseFloat(editFormData.longitude) : null} 
+                              onChange={(lat, lng) => setEditFormData({...editFormData, latitude: lat.toString(), longitude: lng.toString()})} 
+                            />
+                          </div>
                         </td>
                         <td className="px-6 py-4 text-right flex justify-end gap-3">
                           <button disabled={busy} onClick={() => handleUpdateRestaurant(r.id)} className="text-moss hover:text-moss/80"><Check size={18} /></button>

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const authPages = ["/login", "/register"];
-const protectedPages = ["/collections", "/social"];
+const protectedPages = ["/profile", "/social"];
 
 function isProtectedPage(pathname: string) {
   return protectedPages.some(
@@ -26,5 +26,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/login", "/register", "/collections/:path*", "/social/:path*"]
+  matcher: ["/login", "/register", "/profile/:path*", "/social/:path*"]
 };
