@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getCurrentUserId, isAdmin } from "@/lib/auth";
 import { LogoutButton } from "@/components/layout/LogoutButton";
 import { Logo } from "./Logo";
+import RestaurantSearchBar from "@/features/restaurants/components/RestaurantSearchBar";
 
 export async function Header() {
   const userId = getCurrentUserId();
@@ -32,7 +33,7 @@ export async function Header() {
               </Link>
             ))}
           </nav>
-
+          <RestaurantSearchBar/>
           {userId ? (
             <LogoutButton />
           ) : (
