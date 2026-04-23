@@ -16,10 +16,12 @@ type RecommendationResult = {
 
 type HomeBookExperienceProps = {
   startOpen?: boolean;
+  initialQuestions?: any[];
 };
 
 export function HomeBookExperience({
-  startOpen = false
+  startOpen = false,
+  initialQuestions
 }: HomeBookExperienceProps) {
   const [phase, setPhase] = useState<BookPhase>(startOpen ? "open" : "closed");
   const [contentVisible, setContentVisible] = useState(startOpen);
@@ -29,8 +31,16 @@ export function HomeBookExperience({
   const resultsRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    const handleReset = () => {
+      setPhase("closed");
+      setContentVisible(false);
+      setRecommendations(null);
+    };
+
+    window.addEventListener("reset-book", handleReset);
     return () => {
       timersRef.current.forEach((timer) => window.clearTimeout(timer));
+      window.removeEventListener("reset-book", handleReset);
     };
   }, []);
 
@@ -148,6 +158,7 @@ export function HomeBookExperience({
             <NarrativeFilter
               immersive
               embedded
+              initialQuestions={initialQuestions}
               onRecommendationsReady={setRecommendations}
               onRecommendationsReset={() => setRecommendations(null)}
             />
