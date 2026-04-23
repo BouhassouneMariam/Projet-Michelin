@@ -4,6 +4,7 @@ import { ArrowLeft, Globe, Lock, MapPin, Search } from "lucide-react";
 import { BadgePill } from "@/components/shared/BadgePill";
 import { RestaurantCard } from "@/components/shared/RestaurantCard";
 import { CollectionActions } from "@/components/collections/CollectionActions";
+import { ShareCollectionButton } from "@/components/collections/ShareCollectionButton";
 import { RemoveRestaurantButton } from "@/components/collections/RemoveRestaurantButton";
 import { getCollection } from "@/features/collections/collection.service";
 import { getUserLikedRestaurantIds, getLikedCollection } from "@/features/social/social.service";
@@ -66,15 +67,20 @@ export default async function CollectionDetailPage({
               <ArrowLeft size={18} />
             </Link>
 
-            {isOwner && (
-              <CollectionActions
-                collectionId={collection.id}
-                initialTitle={collection.title}
-                initialDescription={collection.description}
-                initialCoverUrl={collection.coverUrl}
-                initialIsPublic={collection.isPublic}
-              />
-            )}
+            <div className="flex items-center gap-2">
+              {(collection.isPublic || isOwner || params.id === "__liked__") && (
+                <ShareCollectionButton collectionId={collection.id} />
+              )}
+              {isOwner && (
+                <CollectionActions
+                  collectionId={collection.id}
+                  initialTitle={collection.title}
+                  initialDescription={collection.description}
+                  initialCoverUrl={collection.coverUrl}
+                  initialIsPublic={collection.isPublic}
+                />
+              )}
+            </div>
           </div>
 
           <div className="space-y-4">
@@ -100,7 +106,7 @@ export default async function CollectionDetailPage({
                   alt=""
                   className="h-5 w-5 rounded-full object-cover ring-1 ring-white/20"
                 />
-                <span className="font-medium">Par @{collection.owner.username}</span>
+                <span className="font-medium">Par {collection.owner.name}</span>
               </div>
             </div>
           </div>

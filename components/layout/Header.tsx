@@ -6,7 +6,8 @@ export function Header() {
   const userId = getCurrentUserId();
   const navItems = [
     { href: "/discover", label: "Decouvrir" },
-    { href: "/map", label: "Map" }
+    { href: "/map", label: "Map" },
+    { href: "/collections", label: "Collections" }
   ];
 
   return (

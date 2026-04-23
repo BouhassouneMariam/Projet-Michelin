@@ -19,6 +19,7 @@ export function CollectionActions({
 }) {
   const [open, setOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [busy, setBusy] = useState(false);
   const router = useRouter();
 
@@ -29,7 +30,6 @@ export function CollectionActions({
   const [isPublic, setIsPublic] = useState(initialIsPublic);
 
   async function handleDelete() {
-    if (!confirm("Voulez-vous vraiment supprimer cette collection ?")) return;
     setBusy(true);
 
     try {
@@ -56,8 +56,8 @@ export function CollectionActions({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
-          description: description || null,
-          coverUrl: coverUrl || null,
+          description: description,
+          coverUrl: coverUrl,
           isPublic
         })
       });
@@ -101,7 +101,7 @@ export function CollectionActions({
             <button
               onClick={() => {
                 setOpen(false);
-                handleDelete();
+                setIsDeleting(true);
               }}
               disabled={busy}
               className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium text-rouge transition hover:bg-rouge/5 text-left"
@@ -188,6 +188,45 @@ export function CollectionActions({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Modal */}
+      {isDeleting && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4">
+          <div
+            className="absolute inset-0"
+            onClick={() => setIsDeleting(false)}
+          />
+          <div className="relative w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-rouge/10">
+              <Trash2 size={24} className="text-rouge" />
+            </div>
+            <h2 className="mb-2 text-xl font-semibold text-ink">
+              Supprimer la collection
+            </h2>
+            <p className="mb-6 text-sm text-ink/60">
+              Êtes-vous sûr de vouloir supprimer définitivement cette collection ? Cette action est irréversible.
+            </p>
+            <div className="flex justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setIsDeleting(false)}
+                disabled={busy}
+                className="rounded-xl px-5 py-2.5 text-sm font-semibold text-ink/60 transition hover:bg-ink/5 hover:text-ink disabled:opacity-50"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={busy}
+                className="rounded-xl bg-rouge px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-rouge/90 disabled:opacity-50"
+              >
+                {busy ? "Suppression..." : "Supprimer"}
+              </button>
+            </div>
           </div>
         </div>
       )}
