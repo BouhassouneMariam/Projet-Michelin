@@ -8,10 +8,12 @@ import type { CollectionDto } from "@/types/api";
 
 export function CollectionList({
   initialCollections,
-  onCollectionCreated
+  onCollectionCreated,
+  canCreate = true
 }: {
   initialCollections: CollectionDto[];
   onCollectionCreated?: () => void;
+  canCreate?: boolean;
 }) {
   const [collections, setCollections] = useState(initialCollections);
   const [showForm, setShowForm] = useState(false);
@@ -52,7 +54,8 @@ export function CollectionList({
   return (
     <div className="space-y-6">
       {/* Create button / form */}
-      <AnimatePresence mode="wait">
+      {canCreate ? (
+        <AnimatePresence mode="wait">
         {showForm ? (
           <motion.form
             key="form"
@@ -183,6 +186,7 @@ export function CollectionList({
           </motion.button>
         )}
       </AnimatePresence>
+      ) : null}
 
       {/* Collection grid */}
       {collections.length > 0 ? (

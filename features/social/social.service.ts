@@ -1,10 +1,9 @@
-import { FriendshipStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import {
   toRestaurantDto,
   type RestaurantWithRelations
 } from "@/features/restaurants/restaurant.queries";
-import type { FriendsLikedDto, UserDto } from "@/types/api";
+import type { FollowingLikedDto, UserDto } from "@/types/api";
 
 export type LikeResult =
   | { success: true }
@@ -76,28 +75,28 @@ export async function unlikeRestaurant(
   return { success: true };
 }
 
-/** Get restaurants liked by the friends of a given user */
-export async function getFriendsLikedRestaurants(
+/** Get restaurants liked by the users a given user follows */
+export async function getFollowingLikedRestaurants(
   userId: string
-): Promise<FriendsLikedDto> {
-  const friendships = await prisma.friendship.findMany({
+): Promise<FollowingLikedDto> {
+  const follows = await prisma.follow.findMany({
     where: {
-      status: FriendshipStatus.ACCEPTED,
-      OR: [{ requesterId: userId }, { receiverId: userId }]
+      followerId: userId
+    },
+    select: {
+      followedId: true
     }
   });
 
-  const friendIds = friendships.map((f) =>
-    f.requesterId === userId ? f.receiverId : f.requesterId
-  );
+  const followedIds = follows.map((follow) => follow.followedId);
 
-  if (friendIds.length === 0) {
+  if (followedIds.length === 0) {
     return [];
   }
 
   const likes = await prisma.restaurantLike.findMany({
     where: {
-      userId: { in: friendIds }
+      userId: { in: followedIds }
     },
     include: {
       user: true,

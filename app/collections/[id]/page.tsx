@@ -106,7 +106,12 @@ export default async function CollectionDetailPage({
                   alt=""
                   className="h-5 w-5 rounded-full object-cover ring-1 ring-white/20"
                 />
-                <span className="font-medium">Par {collection.owner.name}</span>
+                <Link
+                  href={`/users/${collection.owner.username}`}
+                  className="font-medium transition hover:text-white"
+                >
+                  Par {collection.owner.name}
+                </Link>
               </div>
             </div>
           </div>

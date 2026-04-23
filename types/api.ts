@@ -51,7 +51,7 @@ export type CollectionDto = {
   }>;
 };
 
-export type FriendsLikedDto = Array<{
+export type FollowingLikedDto = Array<{
   restaurant: RestaurantDto;
   likedBy: UserDto[];
 }>;

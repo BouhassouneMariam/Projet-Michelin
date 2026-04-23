@@ -69,9 +69,13 @@ export function CollectionCard({
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-ink/50">
+              <Link
+                href={`/users/${collection.owner.username}`}
+                onClick={(event) => event.stopPropagation()}
+                className="text-xs font-medium text-ink/50 transition hover:text-rouge"
+              >
                 Par {collection.owner.name}
-              </span>
+              </Link>
             </div>
 
             <span className="rounded-lg bg-porcelain px-2.5 py-1 text-xs font-semibold tabular-nums text-ink/60">
