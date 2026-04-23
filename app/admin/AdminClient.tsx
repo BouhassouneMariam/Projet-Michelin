@@ -205,6 +205,30 @@ export function AdminClient({ restaurants, users, initialQuestions }: { restaura
     }
   }
 
+  async function handleDeleteRestaurant(id: string) {
+    setBusy(true);
+    try {
+      await deleteRestaurant(id);
+      setDeletingRestId(null);
+    } catch (err) {
+      alert("Erreur lors de la suppression");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleDeleteUser(id: string) {
+    setBusy(true);
+    try {
+      await deleteUser(id);
+      setDeletingUserId(null);
+    } catch (err) {
+      alert("Erreur lors de la suppression");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="space-y-8">
       {/* TABS */}

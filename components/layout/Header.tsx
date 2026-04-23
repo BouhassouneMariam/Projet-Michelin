@@ -1,18 +1,20 @@
+"use client";
+
 import Link from "next/link";
-import { getCurrentUserId, isAdmin } from "@/lib/auth";
 import { LogoutButton } from "@/components/layout/LogoutButton";
 import { Logo } from "./Logo";
 import RestaurantSearchBar from "@/features/restaurants/components/RestaurantSearchBar";
+import { useAuth } from "@/features/users/AuthProvider";
 
-export async function Header() {
-  const userId = getCurrentUserId();
-  const isUserAdmin = await isAdmin();
-  
+
+export function Header() {
+  const { isAdmin, isAuthenticated } = useAuth();
+
   const navItems = [
     { href: "/discover", label: "Decouvrir" },
     { href: "/map", label: "Map" },
-    { href: "/profile", label: "Mon Profil" },
-    { href: "/admin", label: "Admin" }
+    ...(isAuthenticated ? [{ href: "/profile", label: "Mon Profil" }] : []),
+    ...(isAdmin ? [{ href: "/admin", label: "Admin" }] : [])
   ];
 
   return (
@@ -35,6 +37,8 @@ export async function Header() {
           </nav>
           <RestaurantSearchBar/>
           {userId ? (
+
+          {isAuthenticated ? (
             <LogoutButton />
           ) : (
             <Link
