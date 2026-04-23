@@ -1,61 +1,50 @@
-import Link from "next/link";
-import { Users } from "lucide-react";
-import { redirect } from "next/navigation";
-import { RestaurantCard } from "@/components/shared/RestaurantCard";
-import { BadgePill } from "@/components/shared/BadgePill";
-import { getCurrentUserId } from "@/lib/auth";
-import { getFollowingLikedRestaurants, getUserLikedRestaurantIds } from "@/features/social/social.service";
+"use client";
 
-export default async function SocialPage() {
-  const userId = getCurrentUserId();
+import { Users, Sparkles, MessageCircle } from "lucide-react";
+import { motion } from "framer-motion";
 
-  if (!userId) {
-    redirect("/login");
-  }
-
-  const [followingLiked, likedIds] = await Promise.all([
-    getFollowingLikedRestaurants(userId),
-    getUserLikedRestaurantIds(userId)
-  ]);
-  const likedSet = new Set(likedIds);
-
+export default function SocialPage() {
   return (
-    <main className="px-5 pb-8 pt-6">
-      <div className="mb-6 space-y-3">
-        <BadgePill icon={<Users size={14} />}>Following signal</BadgePill>
-        <div className="space-y-2">
-          <h1 className="text-3xl font-semibold text-ink">
-            What your circle saved
-          </h1>
-          <p className="max-w-2xl text-sm leading-6 text-ink/60">
-            This is the social layer for the demo: likes from people you follow
-            become context on top of Michelin expertise.
-          </p>
-        </div>
-      </div>
+    <div className="flex min-h-screen flex-col bg-[#F9F8F7] pb-32">
+      <header className="px-6 py-8">
+        <h1 className="text-3xl font-bold text-ink">Social</h1>
+        <p className="mt-2 text-ink/50">Connectez-vous avec la communauté Michelin.</p>
+      </header>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {followingLiked.map((item) => (
-          <div key={item.restaurant.id} className="space-y-2">
-            <RestaurantCard restaurant={item.restaurant} initialLiked={likedSet.has(item.restaurant.id)} />
-            <p className="px-1 text-sm font-medium text-ink/60">
-              Liked by{" "}
-              {item.likedBy.map((user, index) => (
-                <span key={user.id}>
-                  {index > 0 ? ", " : ""}
-                  <Link
-                    href={`/users/${user.username}`}
-                    className="transition hover:text-rouge"
-                  >
-                    {user.name}
-                  </Link>
-                </span>
-              ))}
-            </p>
+      <main className="flex flex-1 flex-col items-center justify-center px-8 text-center">
+        <div className="relative mb-8">
+          <div className="absolute inset-0 animate-pulse rounded-full bg-rouge/10 scale-150" />
+          <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-white shadow-xl">
+            <Users size={40} className="text-rouge" />
           </div>
-        ))}
-      </div>
-    </main>
+        </div>
+
+        <h2 className="text-2xl font-bold text-ink">Arrive bientôt !</h2>
+        <p className="mt-4 text-sm leading-relaxed text-ink/60">
+          Nous préparons une nouvelle façon de partager vos collections, de suivre vos amis et de découvrir les tables préférées des ambassadeurs Michelin.
+        </p>
+
+        <div className="mt-10 grid w-full gap-4">
+          <div className="flex items-center gap-4 rounded-3xl bg-white p-5 shadow-sm">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-porcelain">
+              <Sparkles size={20} className="text-rouge" />
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-bold">Suivez vos amis</p>
+              <p className="text-xs text-ink/40">Découvrez leurs nouvelles trouvailles.</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 rounded-3xl bg-white p-5 shadow-sm">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-porcelain">
+              <MessageCircle size={20} className="text-rouge" />
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-bold">Partagez vos avis</p>
+              <p className="text-xs text-ink/40">Échangez sur vos expériences culinaires.</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
   );
 }
-
