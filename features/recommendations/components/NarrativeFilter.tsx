@@ -13,7 +13,10 @@ import {
   MapPin,
   Sparkles,
   Utensils,
-  Users
+  Users,
+  Search,
+  Settings,
+  HelpCircle
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -22,13 +25,36 @@ import { RestaurantCard } from "@/components/shared/RestaurantCard";
 import type { RestaurantDto } from "@/types/api";
 import { cn } from "@/lib/cn";
 
-type QuestionKey = "occasion" | "vibe" | "budget" | "city";
+const ICON_MAP: Record<string, LucideIcon> = {
+  Heart,
+  Users,
+  Sparkles,
+  Utensils,
+  Armchair,
+  Flame,
+  Gem,
+  CircleDollarSign,
+  MapPin,
+  Search,
+  Settings,
+  HelpCircle
+};
+
+function getIcon(name?: string): LucideIcon {
+  if (!name) return Sparkles;
+  const normalized = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+  return ICON_MAP[normalized] || Sparkles;
+}
+
+type QuestionKey = string;
 
 type Option = {
   value: string;
   label: string;
-  detail: string;
-  icon: LucideIcon;
+  description?: string;
+  detail?: string;
+  iconName?: string;
+  icon?: LucideIcon;
 };
 
 type Question = {
@@ -39,139 +65,12 @@ type Question = {
   options: Option[];
 };
 
-const questions: Question[] = [
-  {
-    key: "occasion",
-    label: "Occasion",
-    question: "C'est pour quelle occasion ?",
-    intro:
-      "Tournons la premiere page. Le Guide commence par le moment que vous voulez vivre.",
-    options: [
-      {
-        value: "date",
-        label: "A deux",
-        detail: "Une table intime, precise, memorisable.",
-        icon: Heart
-      },
-      {
-        value: "friends",
-        label: "En groupe",
-        detail: "Un lieu vivant, facile a partager.",
-        icon: Users
-      },
-      {
-        value: "special",
-        label: "Occasion speciale",
-        detail: "Une table qui marque le moment.",
-        icon: Sparkles
-      },
-      {
-        value: "casual",
-        label: "Juste manger",
-        detail: "Une adresse juste bonne, sans ceremonie.",
-        icon: Utensils
-      }
-    ]
-  },
-  {
-    key: "vibe",
-    label: "Ambiance",
-    question: "Quelle ambiance vous attire ?",
-    intro:
-      "Le decor compte autant que l'assiette. Choisissez le ton de la soiree.",
-    options: [
-      {
-        value: "cosy",
-        label: "Cosy",
-        detail: "Chaleureux, calme, proche.",
-        icon: Armchair
-      },
-      {
-        value: "trendy",
-        label: "Trendy",
-        detail: "Actuel, vibrant, a raconter.",
-        icon: Flame
-      },
-      {
-        value: "luxe",
-        label: "Luxe",
-        detail: "Service, precision, grande experience.",
-        icon: Gem
-      },
-      {
-        value: "chill",
-        label: "Chill",
-        detail: "Simple, bon, sans pression.",
-        icon: Sparkles
-      }
-    ]
-  },
-  {
-    key: "budget",
-    label: "Budget",
-    question: "Quel budget envisagez-vous ?",
-    intro: "Du plaisir accessible a la grande table, on ajuste la selection.",
-    options: [
-      {
-        value: "MEDIUM",
-        label: "Modere",
-        detail: "Une sortie maitrisee, mais premium.",
-        icon: CircleDollarSign
-      },
-      {
-        value: "HIGH",
-        label: "Eleve",
-        detail: "Pour se faire plaisir sans compromis.",
-        icon: CircleDollarSign
-      },
-      {
-        value: "LUXURY",
-        label: "Exception",
-        detail: "Une adresse qui marque une occasion.",
-        icon: CircleDollarSign
-      }
-    ]
-  },
-  {
-    key: "city",
-    label: "Ville",
-    question: "Dans quelle ville chercher ?",
-    intro:
-      "Derniere page. La recommandation partira d'une vraie base Michelin geolocalisee.",
-    options: [
-      {
-        value: "Paris",
-        label: "Paris",
-        detail: "La ville la plus complete pour votre demo.",
-        icon: MapPin
-      },
-      {
-        value: "Tokyo",
-        label: "Tokyo",
-        detail: "Haute densite, selections tres fortes.",
-        icon: MapPin
-      },
-      {
-        value: "London",
-        label: "London",
-        detail: "Scene moderne et lisible.",
-        icon: MapPin
-      },
-      {
-        value: "New York",
-        label: "New York",
-        detail: "Parfait pour montrer le cote lifestyle.",
-        icon: MapPin
-      }
-    ]
-  }
-];
-
-type Answers = Partial<Record<QuestionKey, string>>;
+type Answers = Record<QuestionKey, string>;
 
 type NarrativeFilterProps = {
   immersive?: boolean;
   embedded?: boolean;
+  initialQuestions?: any[];
   onRecommendationsReady?: (payload: {
     title: string;
     restaurants: RestaurantDto[];
@@ -181,18 +80,40 @@ type NarrativeFilterProps = {
 
 const PAGE_TRANSITION_DURATION_MS = 340;
 
-function buildPayload(answers: Answers) {
-  return {
-    occasion: answers.occasion || "date",
-    vibes: [answers.vibe || "cosy"],
-    budget: answers.budget || "HIGH",
-    city: answers.city || "Paris"
+function buildPayload(answers: Answers, questions: any[]) {
+  // We collect everything. 
+  // Backend expects: occasion, vibes (array), budget, city
+  const payload: any = {
+    vibes: []
   };
+
+  questions.forEach(q => {
+    const val = answers[q.key];
+    if (!val) return;
+
+    if (q.key === "occasion") payload.occasion = val;
+    else if (q.key === "budget") payload.budget = val;
+    else if (q.key === "city") payload.city = val;
+    else if (q.key === "vibe" || q.key === "vibes") payload.vibes.push(val);
+    else {
+      // Any other dynamic question added by user is added as a vibe tag
+      payload.vibes.push(val);
+    }
+  });
+
+  // Defaults if missing
+  if (!payload.occasion) payload.occasion = "date";
+  if (payload.vibes.length === 0) payload.vibes = ["cosy"];
+  if (!payload.budget) payload.budget = "HIGH";
+  if (!payload.city) payload.city = "Paris";
+
+  return payload;
 }
 
 export function NarrativeFilter({
   immersive = false,
   embedded = false,
+  initialQuestions,
   onRecommendationsReady,
   onRecommendationsReset
 }: NarrativeFilterProps) {
@@ -205,23 +126,32 @@ export function NarrativeFilter({
   const [restaurants, setRestaurants] = useState<RestaurantDto[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const currentQuestion = questions[step];
-  const leftQuestion = currentQuestion;
-  const rightQuestion = currentQuestion;
-  const progress = ((step + 1) / questions.length) * 100;
-  const rightProgress = progress;
+  // Use DB questions if available, otherwise we'll have a blank book or we can fallback
+  const activeQuestions = initialQuestions && initialQuestions.length > 0 ? initialQuestions : [];
+
+  if (activeQuestions.length === 0) {
+    return (
+      <div className="flex h-64 items-center justify-center rounded-2xl bg-porcelain text-ink/40">
+        Aucun chapitre configuré dans l'administration.
+      </div>
+    );
+  }
+
+  const currentQuestion = activeQuestions[step] || activeQuestions[0];
+  const progress = ((step + 1) / activeQuestions.length) * 100;
 
   async function runRecommendation(nextAnswers: Answers) {
     setLoading(true);
     setError(null);
 
     try {
+      const payload = buildPayload(nextAnswers, activeQuestions);
       const response = await fetch("/api/recommendations", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(buildPayload(nextAnswers))
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
@@ -240,7 +170,7 @@ export function NarrativeFilter({
         title: data.title,
         restaurants: data.restaurants
       });
-    } catch {
+    } catch (err) {
       setError("Impossible de generer la selection pour le moment.");
     } finally {
       setLoading(false);
@@ -262,7 +192,7 @@ export function NarrativeFilter({
     setTurning(true);
 
     window.setTimeout(() => {
-      if (step === questions.length - 1) {
+      if (step === activeQuestions.length - 1) {
         void runRecommendation(nextAnswers);
         return;
       }
@@ -281,7 +211,7 @@ export function NarrativeFilter({
       setFinished(false);
       setRestaurants([]);
       setError(null);
-      setStep(questions.length - 1);
+      setStep(activeQuestions.length - 1);
       onRecommendationsReset?.();
       return;
     }
@@ -337,7 +267,7 @@ export function NarrativeFilter({
           </div>
 
           <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#757575]">
-            {step + 1}/{questions.length}
+            {step + 1}/{activeQuestions.length}
           </span>
         </div>
       ) : null}
@@ -384,7 +314,7 @@ export function NarrativeFilter({
                 Chapitre {step + 1}
               </span>
               <span className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#757575]">
-                {leftQuestion.label}
+                {currentQuestion.label}
               </span>
             </div>
 
@@ -407,7 +337,7 @@ export function NarrativeFilter({
                       : "text-3xl sm:text-4xl"
                   )}
                 >
-                  {finished ? "Votre chapitre est pret." : leftQuestion.question}
+                  {finished ? "Votre chapitre est pret." : currentQuestion.question}
                 </h1>
 
                 <p
@@ -418,7 +348,7 @@ export function NarrativeFilter({
                 >
                   {finished
                     ? "Le Guide a compose une shortlist avec vos criteres. Vous pouvez ouvrir une fiche, garder une adresse ou recommencer."
-                    : leftQuestion.intro}
+                    : currentQuestion.intro}
                 </p>
 
                 <div className="mt-auto pt-8">
@@ -459,13 +389,13 @@ export function NarrativeFilter({
                   <motion.div
                     className="h-full bg-rouge"
                     initial={false}
-                    animate={{ width: `${rightProgress}%` }}
+                    animate={{ width: `${progress}%` }}
                     transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
                   />
                 </div>
 
                 <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#757575]">
-                  {step + 1}/{questions.length}
+                  {step + 1}/{activeQuestions.length}
                 </span>
               </div>
             ) : null}
@@ -475,7 +405,7 @@ export function NarrativeFilter({
                 Vos choix
               </span>
               <span className="text-[10px] font-semibold uppercase tracking-[0.24em] text-rouge">
-                {finished ? "Resultat" : `${rightQuestion.options.length} options`}
+                {finished ? "Resultat" : `${currentQuestion.options?.length || 0} options`}
               </span>
             </div>
 
@@ -489,8 +419,8 @@ export function NarrativeFilter({
                 exit={{ opacity: 0, y: -6 }}
                 transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                 className={cn(
-                  "flex min-h-0 flex-1 flex-col",
-                  embedded ? "gap-2.5 overflow-hidden" : "gap-3"
+                  "flex min-h-0 flex-1 flex-col pr-1",
+                  embedded ? "gap-2.5 overflow-y-auto" : "gap-3 overflow-y-auto"
                 )}
               >
                 {finished ? (
@@ -511,15 +441,15 @@ export function NarrativeFilter({
                     </Button>
                   </div>
                 ) : (
-                  rightQuestion.options.map((option, index) => {
-                    const Icon = option.icon;
+                  currentQuestion.options?.map((option: any, index: number) => {
+                    const Icon = getIcon(option.iconName);
                     const selected =
-                      answers[rightQuestion.key] === option.value;
+                      answers[currentQuestion.key] === option.value;
 
                     return (
                       <motion.button
                         type="button"
-                        key={option.value}
+                        key={option.id || option.value}
                         initial={{ opacity: 0, x: 10 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.05 + index * 0.05 }}
@@ -528,7 +458,7 @@ export function NarrativeFilter({
                         onClick={() => choose(option)}
                         disabled={turning || loading}
                         className={cn(
-                          "group flex items-center rounded border border-[#DDDDDD] bg-white/75 text-left shadow-[0_2px_12px_rgba(0,0,0,0.04)] transition hover:border-rouge hover:bg-white disabled:opacity-55",
+                          "group flex items-center rounded border border-[#DDDDDD] bg-white/75 text-left shadow-[0_2px_12_rgba(0,0,0,0.04)] transition hover:border-rouge hover:bg-white disabled:opacity-55",
                           embedded
                             ? "min-h-[58px] gap-3 px-3 py-2.5"
                             : "min-h-[76px] gap-4 px-4 py-3",
@@ -556,7 +486,7 @@ export function NarrativeFilter({
 
                           {!embedded ? (
                             <span className="mt-1 block text-sm leading-5 text-[#757575]">
-                              {option.detail}
+                              {option.description || option.detail}
                             </span>
                           ) : null}
                         </span>
