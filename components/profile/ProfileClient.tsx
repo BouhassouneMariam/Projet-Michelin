@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { Users, UserPlus, Heart, Layers3, Globe } from "lucide-react";
 import { EditProfileModal } from "@/components/profile/EditProfileModal";
@@ -15,7 +16,10 @@ interface ProfileClientProps {
   collections: CollectionDto[];
   likedCollection: CollectionDto | null;
   popularCollections: CollectionDto[];
+  followingCollections: CollectionDto[];
   isOwnProfile: boolean;
+  canFollow?: boolean;
+  initialIsFollowing?: boolean;
 }
 
 export function ProfileClient({
@@ -23,11 +27,42 @@ export function ProfileClient({
   collections,
   likedCollection,
   popularCollections,
+  followingCollections,
   isOwnProfile,
+  canFollow = false,
+  initialIsFollowing = false
 }: ProfileClientProps) {
   const [profile, setProfile] = useState(initialProfile);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<"my" | "popular">("my");
+  const [activeTab, setActiveTab] = useState<"my" | "following" | "popular">("my");
+  const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
+  const [followBusy, setFollowBusy] = useState(false);
+
+  async function handleFollowToggle() {
+    if (followBusy) {
+      return;
+    }
+
+    setFollowBusy(true);
+
+    try {
+      const response = await fetch(`/api/users/${profile.id}/follow`, {
+        method: isFollowing ? "DELETE" : "POST"
+      });
+
+      if (!response.ok) {
+        return;
+      }
+
+      setIsFollowing((prev) => !prev);
+      setProfile((prev) => ({
+        ...prev,
+        followersCount: prev.followersCount + (isFollowing ? -1 : 1)
+      }));
+    } finally {
+      setFollowBusy(false);
+    }
+  }
 
   return (
     <main className="michelin-paper min-h-[calc(100dvh-68px)] px-5 pb-16 pt-10 md:px-8">
@@ -59,7 +94,16 @@ export function ProfileClient({
                 <h1 className="text-3xl font-medium text-ink md:text-4xl">
                   {profile.name}
                 </h1>
-                <p className="text-lg text-[#666666]">@{profile.username}</p>
+                {isOwnProfile ? (
+                  <p className="text-lg text-[#666666]">@{profile.username}</p>
+                ) : (
+                  <Link
+                    href={`/users/${profile.username}`}
+                    className="text-lg text-[#666666] transition hover:text-rouge"
+                  >
+                    @{profile.username}
+                  </Link>
+                )}
                 {profile.isAmbassador && (
                   <div className="mt-2 inline-block rounded-full bg-rouge/10 px-3 py-1 text-sm font-medium text-rouge">
                     Ambassadeur Michelin
@@ -108,14 +152,28 @@ export function ProfileClient({
           </div>
 
           {/* Edit Button */}
-          {isOwnProfile && (
+          {isOwnProfile ? (
             <button
               onClick={() => setShowEditModal(true)}
               className="w-full rounded-lg border-2 border-rouge bg-white px-6 py-2 font-medium text-rouge transition hover:bg-rouge hover:text-white md:w-auto"
             >
               Modifier mon profil
             </button>
-          )}
+          ) : canFollow ? (
+            <button
+              type="button"
+              onClick={handleFollowToggle}
+              disabled={followBusy}
+              className={cn(
+                "w-full rounded-lg px-6 py-2 font-medium transition disabled:opacity-60 md:w-auto",
+                isFollowing
+                  ? "border border-ink/15 bg-white text-ink hover:bg-ink/5"
+                  : "bg-rouge text-white hover:bg-[#9d2626]"
+              )}
+            >
+              {isFollowing ? "Abonné" : "S'abonner"}
+            </button>
+          ) : null}
         </div>
 
         {/* Tabs */}
@@ -131,6 +189,18 @@ export function ProfileClient({
           >
             <Layers3 size={18} />
             Mes Collections
+          </button>
+          <button
+            onClick={() => setActiveTab("following")}
+            className={cn(
+              "flex items-center gap-2 border-b-2 px-6 py-4 text-sm font-semibold transition-colors",
+              activeTab === "following"
+                ? "border-rouge text-rouge"
+                : "border-transparent text-ink/50 hover:text-ink"
+            )}
+          >
+            <Users size={18} />
+            Abonnements
           </button>
           <button
             onClick={() => setActiveTab("popular")}
@@ -182,6 +252,7 @@ export function ProfileClient({
               {collections.length > 0 || isOwnProfile ? (
                 <CollectionList 
                   initialCollections={collections} 
+                  canCreate={isOwnProfile}
                   onCollectionCreated={() => {
                     setProfile(prev => ({
                       ...prev,
@@ -197,6 +268,29 @@ export function ProfileClient({
                 </div>
               )}
             </div>
+          </div>
+        ) : activeTab === "following" ? (
+          <div className="space-y-6">
+            <div className="mb-6">
+              <h2 className="text-2xl font-medium text-ink">Collections des abonnements</h2>
+              <p className="mt-1 text-sm text-[#666666]">
+                Retrouvez les collections publiques des personnes que vous suivez.
+              </p>
+            </div>
+
+            {followingCollections.length > 0 ? (
+              <div className="grid gap-5 md:grid-cols-2">
+                {followingCollections.map((collection, i) => (
+                  <CollectionCard key={collection.id} collection={collection} index={i} />
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
+                <p className="text-[#666666]">
+                  Aucune collection publique provenant de vos abonnements pour le moment.
+                </p>
+              </div>
+            )}
           </div>
         ) : (
           <div className="space-y-6">

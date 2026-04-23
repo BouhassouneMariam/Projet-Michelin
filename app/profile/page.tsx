@@ -2,7 +2,11 @@ import { redirect } from "next/navigation";
 import { ProfileClient } from "@/components/profile/ProfileClient";
 import { getCurrentUserId } from "@/lib/auth";
 import { getUserProfile } from "@/features/users/user.service";
-import { listUserCollections, listPopularCollections } from "@/features/collections/collection.service";
+import {
+  listFollowingCollections,
+  listPopularCollections,
+  listUserCollections
+} from "@/features/collections/collection.service";
 import { getLikedCollection } from "@/features/social/social.service";
 
 export const metadata = {
@@ -17,11 +21,12 @@ export default async function ProfilePage() {
     redirect("/login");
   }
 
-  const [profile, collections, likedCollection, popularCollections] = await Promise.all([
+  const [profile, collections, likedCollection, popularCollections, followingCollections] = await Promise.all([
     getUserProfile(userId),
     listUserCollections(userId),
     getLikedCollection(userId),
     listPopularCollections(userId),
+    listFollowingCollections(userId)
   ]);
 
   if (!profile) {
@@ -34,6 +39,7 @@ export default async function ProfilePage() {
       collections={collections}
       likedCollection={likedCollection}
       popularCollections={popularCollections}
+      followingCollections={followingCollections}
       isOwnProfile={true}
     />
   );

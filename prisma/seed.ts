@@ -60,48 +60,45 @@ async function main() {
     }
   }
 
-  await prisma.friendship.upsert({
+  await prisma.follow.upsert({
     where: {
-      requesterId_receiverId: {
-        requesterId: DEMO_USER_ID,
-        receiverId: "user-ines"
+      followerId_followedId: {
+        followerId: DEMO_USER_ID,
+        followedId: "user-ines"
       }
     },
-    update: { status: FriendshipStatus.ACCEPTED },
+    update: {},
     create: {
-      requesterId: DEMO_USER_ID,
-      receiverId: "user-ines",
-      status: FriendshipStatus.ACCEPTED
+      followerId: DEMO_USER_ID,
+      followedId: "user-ines"
     }
   });
 
-  await prisma.friendship.upsert({
+  await prisma.follow.upsert({
     where: {
-      requesterId_receiverId: {
-        requesterId: DEMO_USER_ID,
-        receiverId: "user-eliott"
+      followerId_followedId: {
+        followerId: DEMO_USER_ID,
+        followedId: "user-eliott"
       }
     },
-    update: { status: FriendshipStatus.ACCEPTED },
+    update: {},
     create: {
-      requesterId: DEMO_USER_ID,
-      receiverId: "user-eliott",
-      status: FriendshipStatus.ACCEPTED
+      followerId: DEMO_USER_ID,
+      followedId: "user-eliott"
     }
   });
 
-  await prisma.friendship.upsert({
+  await prisma.follow.upsert({
     where: {
-      requesterId_receiverId: {
-        requesterId: "user-nora",
-        receiverId: DEMO_USER_ID
+      followerId_followedId: {
+        followerId: "user-nora",
+        followedId: DEMO_USER_ID
       }
     },
-    update: { status: FriendshipStatus.ACCEPTED },
+    update: {},
     create: {
-      requesterId: "user-nora",
-      receiverId: DEMO_USER_ID,
-      status: FriendshipStatus.ACCEPTED
+      followerId: "user-nora",
+      followedId: DEMO_USER_ID
     }
   });
 

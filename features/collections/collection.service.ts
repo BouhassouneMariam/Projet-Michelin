@@ -74,6 +74,56 @@ export async function listUserCollections(userId: string): Promise<CollectionDto
   return collections.map(toCollectionDto);
 }
 
+/** List collections visible on a user's public profile */
+export async function listVisibleUserCollections(
+  ownerId: string,
+  viewerUserId?: string | null
+): Promise<CollectionDto[]> {
+  const collections = await prisma.collection.findMany({
+    where: {
+      ownerId,
+      ...(viewerUserId === ownerId ? {} : { isPublic: true })
+    },
+    include: collectionInclude,
+    orderBy: { updatedAt: "desc" }
+  });
+
+  return collections.map(toCollectionDto);
+}
+
+/** List public collections from users followed by the given user */
+export async function listFollowingCollections(
+  userId: string
+): Promise<CollectionDto[]> {
+  const follows = await prisma.follow.findMany({
+    where: {
+      followerId: userId
+    },
+    select: {
+      followedId: true
+    }
+  });
+
+  const followedIds = follows.map((follow) => follow.followedId);
+
+  if (followedIds.length === 0) {
+    return [];
+  }
+
+  const collections = await prisma.collection.findMany({
+    where: {
+      isPublic: true,
+      ownerId: {
+        in: followedIds
+      }
+    },
+    include: collectionInclude,
+    orderBy: { updatedAt: "desc" }
+  });
+
+  return collections.map(toCollectionDto);
+}
+
 /** List popular public collections (from other users) */
 export async function listPopularCollections(excludeUserId: string): Promise<CollectionDto[]> {
   const collections = await prisma.collection.findMany({

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Layers3 } from "lucide-react";
 import { RestaurantCard } from "./RestaurantCard";
 import type { CollectionDto } from "@/types/api";
@@ -9,10 +10,13 @@ export function CollectionCard({ collection }: { collection: CollectionDto }) {
     <article className="rounded-lg border border-ink/10 bg-white/70 p-4 shadow-sm backdrop-blur">
       <div className="mb-4 flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-rouge">
+          <Link
+            href={`/users/${collection.owner.username}`}
+            className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-rouge transition hover:opacity-80"
+          >
             <Layers3 size={14} />
             {collection.owner.username}
-          </p>
+          </Link>
           <h2 className="mt-2 truncate text-2xl font-semibold text-ink">
             {collection.title}
           </h2>
