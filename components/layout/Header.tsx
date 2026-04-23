@@ -35,9 +35,7 @@ export function Header() {
               </Link>
             ))}
           </nav>
-          <RestaurantSearchBar/>
-          {userId ? (
-
+          <RestaurantSearchBar />
           {isAuthenticated ? (
             <LogoutButton />
           ) : (
