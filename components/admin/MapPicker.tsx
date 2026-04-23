@@ -14,6 +14,8 @@ export function MapPicker({ lat, lng, onChange }: MapPickerProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const markerRef = useRef<any>(null);
   const [isReady, setIsReady] = useState(false);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
 
   useEffect(() => {
     let mapInstance: any = null;
@@ -52,12 +54,12 @@ export function MapPicker({ lat, lng, onChange }: MapPickerProps) {
 
         marker.on("dragend", () => {
           const pos = marker.getLatLng();
-          onChange(pos.lat, pos.lng);
+          onChangeRef.current(pos.lat, pos.lng);
         });
 
         mapInstance.on("click", (e: any) => {
           marker.setLatLng(e.latlng);
-          onChange(e.latlng.lat, e.latlng.lng);
+          onChangeRef.current(e.latlng.lat, e.latlng.lng);
         });
 
         mapRef.current = mapInstance;
@@ -79,7 +81,7 @@ export function MapPicker({ lat, lng, onChange }: MapPickerProps) {
         mapRef.current = null;
       }
     };
-  }, []); // Only on mount
+  }, [lat, lng]);
 
   useEffect(() => {
     if (isReady && mapRef.current && markerRef.current && lat && lng) {

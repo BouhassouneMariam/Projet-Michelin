@@ -1,5 +1,4 @@
 import {
-  FriendshipStatus,
   PrismaClient,
   Role
 } from "@prisma/client";

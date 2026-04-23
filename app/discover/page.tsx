@@ -1,4 +1,5 @@
 import { HomeBookExperience } from "@/features/home/HomeBookExperience";
+import { DiscoverMobileClient } from "@/features/recommendations/components/DiscoverMobileClient";
 import { prisma } from "@/lib/prisma";
 
 export default async function DiscoverPage() {
@@ -7,5 +8,14 @@ export default async function DiscoverPage() {
     orderBy: { order: "asc" }
   });
 
-  return <HomeBookExperience startOpen initialQuestions={questions} />;
+  return (
+    <>
+      <div className="hidden md:block">
+        <HomeBookExperience startOpen initialQuestions={questions} />
+      </div>
+      <div className="block md:hidden">
+        <DiscoverMobileClient initialQuestions={questions} />
+      </div>
+    </>
+  );
 }
