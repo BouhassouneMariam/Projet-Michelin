@@ -1,5 +1,11 @@
-import { badRequest, conflict, notFound, ok } from "@/lib/api-response";
-import { DEMO_USER_ID } from "@/lib/demo-user";
+import {
+  badRequest,
+  conflict,
+  notFound,
+  ok,
+  unauthorized
+} from "@/lib/api-response";
+import { getCurrentUserId } from "@/lib/auth";
 import { addRestaurantToCollectionSchema } from "@/features/collections/collection.validation";
 import { addRestaurantToCollection } from "@/features/collections/collection.service";
 
@@ -7,6 +13,12 @@ export async function POST(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const userId = getCurrentUserId();
+
+  if (!userId) {
+    return unauthorized();
+  }
+
   const json = await request.json().catch(() => null);
   const parsed = addRestaurantToCollectionSchema.safeParse(json);
 
@@ -14,7 +26,7 @@ export async function POST(
     return badRequest("Invalid payload: restaurantId is required");
   }
 
-  const result = await addRestaurantToCollection(params.id, DEMO_USER_ID, parsed.data);
+  const result = await addRestaurantToCollection(params.id, userId, parsed.data);
 
   if ("error" in result) {
     switch (result.error) {

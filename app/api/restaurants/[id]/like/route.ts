@@ -1,12 +1,18 @@
-import { conflict, notFound, ok } from "@/lib/api-response";
-import { DEMO_USER_ID } from "@/lib/demo-user";
+import { conflict, notFound, ok, unauthorized } from "@/lib/api-response";
+import { getCurrentUserId } from "@/lib/auth";
 import { likeRestaurant, unlikeRestaurant } from "@/features/social/social.service";
 
 export async function POST(
   _request: Request,
   { params }: { params: { id: string } }
 ) {
-  const result = await likeRestaurant(DEMO_USER_ID, params.id);
+  const userId = getCurrentUserId();
+
+  if (!userId) {
+    return unauthorized();
+  }
+
+  const result = await likeRestaurant(userId, params.id);
 
   if ("error" in result) {
     switch (result.error) {
@@ -24,7 +30,13 @@ export async function DELETE(
   _request: Request,
   { params }: { params: { id: string } }
 ) {
-  const result = await unlikeRestaurant(DEMO_USER_ID, params.id);
+  const userId = getCurrentUserId();
+
+  if (!userId) {
+    return unauthorized();
+  }
+
+  const result = await unlikeRestaurant(userId, params.id);
 
   if ("error" in result) {
     return notFound("Like not found");

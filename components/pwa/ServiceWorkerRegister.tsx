@@ -10,23 +10,37 @@ export function ServiceWorkerRegister() {
     }
 
     if (process.env.NODE_ENV !== "production") {
-      navigator.serviceWorker.getRegistrations().then((registrations) => {
-        registrations.forEach((registration) => {
-          void registration.unregister();
-        });
+      Promise.all([
+        navigator.serviceWorker
+          .getRegistrations()
+          .then((registrations) =>
+            Promise.all(registrations.map((registration) => registration.unregister()))
+          )
+          .then((results) => results.some(Boolean))
+          .catch(() => false),
+        "caches" in window
+          ? window.caches
+              .keys()
+              .then((keys) =>
+                Promise.all(keys.map((key) => window.caches.delete(key))).then(
+                  () => keys.length > 0
+                )
+              )
+              .catch(() => false)
+          : Promise.resolve(false)
+      ]).then(([removedServiceWorker, removedCaches]) => {
+        const cleanupKey = "michelin-dev-pwa-cleaned";
+
+        if (
+          (removedServiceWorker || removedCaches) &&
+          window.sessionStorage.getItem(cleanupKey) !== "1"
+        ) {
+          window.sessionStorage.setItem(cleanupKey, "1");
+          window.location.reload();
+        }
       }).catch(() => {
         // Local PWA cleanup should never block development.
       });
-
-      if ("caches" in window) {
-        window.caches.keys().then((keys) => {
-          keys.forEach((key) => {
-            void window.caches.delete(key);
-          });
-        }).catch(() => {
-          // Local cache cleanup should never block development.
-        });
-      }
 
       return;
     }

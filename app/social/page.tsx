@@ -1,13 +1,20 @@
 import { Users } from "lucide-react";
+import { redirect } from "next/navigation";
 import { RestaurantCard } from "@/components/shared/RestaurantCard";
 import { BadgePill } from "@/components/shared/BadgePill";
-import { DEMO_USER_ID } from "@/lib/demo-user";
+import { getCurrentUserId } from "@/lib/auth";
 import { getFriendsLikedRestaurants, getUserLikedRestaurantIds } from "@/features/social/social.service";
 
 export default async function SocialPage() {
+  const userId = getCurrentUserId();
+
+  if (!userId) {
+    redirect("/login");
+  }
+
   const [friendsLiked, likedIds] = await Promise.all([
-    getFriendsLikedRestaurants(DEMO_USER_ID),
-    getUserLikedRestaurantIds(DEMO_USER_ID)
+    getFriendsLikedRestaurants(userId),
+    getUserLikedRestaurantIds(userId)
   ]);
   const likedSet = new Set(likedIds);
 

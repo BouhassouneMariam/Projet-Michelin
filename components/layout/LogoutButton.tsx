@@ -8,7 +8,7 @@ export function LogoutButton() {
       method: "POST"
     });
 
-    window.location.assign("/login");
+    window.location.assign("/");
   }
 
   return (

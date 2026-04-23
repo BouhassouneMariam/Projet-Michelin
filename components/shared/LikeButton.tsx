@@ -6,11 +6,15 @@ import { Heart } from "lucide-react";
 export function LikeButton({
   restaurantId,
   initialLiked = false,
-  initialCount = 0
+  initialCount = 0,
+  onAuthRequired,
+  isLogged =false
 }: {
   restaurantId: string;
   initialLiked?: boolean;
   initialCount?: number;
+  onAuthRequired?: () => void;
+  isLogged: boolean;
 }) {
   const [liked, setLiked] = useState(initialLiked);
   const [count, setCount] = useState(initialCount);
@@ -35,6 +39,10 @@ export function LikeButton({
         // Revert on failure
         setLiked(wasLiked);
         setCount((c) => (wasLiked ? c + 1 : c - 1));
+
+        if (response.status === 401) {
+          onAuthRequired?.();
+        }
       }
     } catch {
       // Revert on error
@@ -52,7 +60,7 @@ export function LikeButton({
         e.stopPropagation();
         toggle();
       }}
-      disabled={busy}
+      disabled={busy || !isLogged}
       className="group/like inline-flex items-center gap-1.5 text-sm font-semibold transition-colors"
       aria-label={liked ? "Retirer le like" : "Liker ce restaurant"}
     >

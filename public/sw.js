@@ -1,9 +1,7 @@
-const CACHE_NAME = "michelin-next-gen-v1";
+const CACHE_NAME = "michelin-next-gen-v2";
 const PRECACHE_URLS = [
   "/",
   "/discover",
-  "/collections",
-  "/social",
   "/map",
   "/manifest.webmanifest"
 ];
@@ -37,6 +35,15 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (url.origin === self.location.origin && (url.pathname.startsWith("/_next/") || url.pathname.startsWith("/api/"))) {
+    return;
+  }
+
+  if (
+    url.origin === self.location.origin &&
+    ["/login", "/register", "/collections", "/social"].some(
+      (pathname) => url.pathname === pathname || url.pathname.startsWith(`${pathname}/`)
+    )
+  ) {
     return;
   }
 

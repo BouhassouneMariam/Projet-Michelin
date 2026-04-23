@@ -8,6 +8,10 @@ export const metadata: Metadata = {
   title: "Michelin Next Gen",
   description: "A premium mobile-first Michelin collections experience.",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/icons/Etoile_Michelin-1.png",
+    apple: "/icons/Etoile_Michelin-1.png",
+  },
   appleWebApp: {
     capable: true,
     title: "Michelin"
