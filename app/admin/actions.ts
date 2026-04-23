@@ -1,29 +1,28 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { getCurrentUserId } from "@/lib/auth";
+import { isAdmin } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
+async function ensureAdmin() {
+  const isUserAdmin = await isAdmin();
+  if (!isUserAdmin) throw new Error("Accès refusé : Droits administrateur requis.");
+}
+
 export async function deleteRestaurant(id: string) {
-  const userId = getCurrentUserId();
-  if (!userId) throw new Error("Unauthorized");
-  
+  await ensureAdmin();
   await prisma.restaurant.delete({ where: { id } });
   revalidatePath("/admin");
 }
 
 export async function deleteUser(id: string) {
-  const userId = getCurrentUserId();
-  if (!userId) throw new Error("Unauthorized");
-  
+  await ensureAdmin();
   await prisma.user.delete({ where: { id } });
   revalidatePath("/admin");
 }
 
 export async function createRestaurant(data: any) {
-  const userId = getCurrentUserId();
-  if (!userId) throw new Error("Unauthorized");
-
+  await ensureAdmin();
   await prisma.restaurant.create({
     data: {
       name: data.name,
@@ -33,17 +32,16 @@ export async function createRestaurant(data: any) {
       award: data.award,
       cuisine: data.cuisine,
       chefName: data.chefName,
-      imageUrl: data.imageUrl || "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&q=80&w=1934",
+      imageUrl: data.imageUrl,
+      latitude: data.latitude ? parseFloat(data.latitude) : null,
+      longitude: data.longitude ? parseFloat(data.longitude) : null,
     }
   });
-  
   revalidatePath("/admin");
 }
 
 export async function updateRestaurant(id: string, data: any) {
-  const userId = getCurrentUserId();
-  if (!userId) throw new Error("Unauthorized");
-
+  await ensureAdmin();
   await prisma.restaurant.update({
     where: { id },
     data: {
@@ -54,29 +52,29 @@ export async function updateRestaurant(id: string, data: any) {
       award: data.award,
       cuisine: data.cuisine,
       chefName: data.chefName,
-      imageUrl: data.imageUrl || "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&q=80&w=1934",
+      imageUrl: data.imageUrl,
+      latitude: data.latitude ? parseFloat(data.latitude) : null,
+      longitude: data.longitude ? parseFloat(data.longitude) : null,
     }
   });
-  
   revalidatePath("/admin");
 }
 
 export async function updateUser(id: string, data: any) {
-  const userId = getCurrentUserId();
-  if (!userId) throw new Error("Unauthorized");
-
+  await ensureAdmin();
   await prisma.user.update({
     where: { id },
     data: {
       name: data.name,
       username: data.username,
+      role: data.role
     }
   });
-  
   revalidatePath("/admin");
 }
 
 export async function getQuestions() {
+  await ensureAdmin();
   return await prisma.question.findMany({
     include: { options: true },
     orderBy: { order: "asc" }
@@ -84,9 +82,7 @@ export async function getQuestions() {
 }
 
 export async function createQuestion(data: any) {
-  const userId = getCurrentUserId();
-  if (!userId) throw new Error("Unauthorized");
-
+  await ensureAdmin();
   await prisma.question.create({
     data: {
       key: data.key,
@@ -100,9 +96,7 @@ export async function createQuestion(data: any) {
 }
 
 export async function updateQuestion(id: string, data: any) {
-  const userId = getCurrentUserId();
-  if (!userId) throw new Error("Unauthorized");
-
+  await ensureAdmin();
   await prisma.question.update({
     where: { id },
     data: {
@@ -117,33 +111,27 @@ export async function updateQuestion(id: string, data: any) {
 }
 
 export async function deleteQuestion(id: string) {
-  const userId = getCurrentUserId();
-  if (!userId) throw new Error("Unauthorized");
-
+  await ensureAdmin();
   await prisma.question.delete({ where: { id } });
   revalidatePath("/admin");
 }
 
 export async function createOption(questionId: string, data: any) {
-  const userId = getCurrentUserId();
-  if (!userId) throw new Error("Unauthorized");
-
+  await ensureAdmin();
   await prisma.questionOption.create({
     data: {
-      questionId,
       label: data.label,
       value: data.value,
       description: data.description,
-      iconName: data.iconName || "Sparkles"
+      iconName: data.iconName,
+      questionId
     }
   });
   revalidatePath("/admin");
 }
 
 export async function updateOption(id: string, data: any) {
-  const userId = getCurrentUserId();
-  if (!userId) throw new Error("Unauthorized");
-
+  await ensureAdmin();
   await prisma.questionOption.update({
     where: { id },
     data: {
@@ -157,9 +145,7 @@ export async function updateOption(id: string, data: any) {
 }
 
 export async function deleteOption(id: string) {
-  const userId = getCurrentUserId();
-  if (!userId) throw new Error("Unauthorized");
-
+  await ensureAdmin();
   await prisma.questionOption.delete({ where: { id } });
   revalidatePath("/admin");
 }

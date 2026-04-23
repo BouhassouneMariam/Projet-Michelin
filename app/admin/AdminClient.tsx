@@ -2,7 +2,14 @@
 
 import { useState, useMemo } from "react";
 import { Trash2, Plus, Users, UtensilsCrossed, Pencil, Check, X, ChevronLeft, ChevronRight, Search, ArrowUpDown, BookOpen, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
+import dynamic from "next/dynamic";
+import "leaflet/dist/leaflet.css";
 import { deleteRestaurant, deleteUser, createRestaurant, updateRestaurant, updateUser, createQuestion, updateQuestion, deleteQuestion, createOption, updateOption, deleteOption } from "./actions";
+
+const MapPicker = dynamic(() => import("@/components/admin/MapPicker").then(mod => mod.MapPicker), { 
+  ssr: false,
+  loading: () => <div className="h-48 w-full animate-pulse rounded-xl bg-porcelain" />
+});
 
 const PAGE_SIZE = 15;
 
@@ -281,6 +288,15 @@ export function AdminClient({ restaurants, users, initialQuestions }: { restaura
                   <option value="GREEN_STAR">Étoile Verte</option>
                 </select>
                 <input type="url" placeholder="URL Image" className="md:col-span-2 rounded-xl border-none bg-porcelain p-3.5 text-sm ring-1 ring-inset ring-ink/10" value={formData.imageUrl} onChange={e => setFormData({...formData, imageUrl: e.target.value})} />
+                <input type="number" step="any" placeholder="Latitude" className="rounded-xl border-none bg-porcelain p-3.5 text-sm ring-1 ring-inset ring-ink/10" value={formData.latitude || ""} onChange={e => setFormData({...formData, latitude: e.target.value})} />
+                <input type="number" step="any" placeholder="Longitude" className="rounded-xl border-none bg-porcelain p-3.5 text-sm ring-1 ring-inset ring-ink/10" value={formData.longitude || ""} onChange={e => setFormData({...formData, longitude: e.target.value})} />
+                <div className="md:col-span-2">
+                  <MapPicker 
+                    lat={formData.latitude ? parseFloat(formData.latitude) : null} 
+                    lng={formData.longitude ? parseFloat(formData.longitude) : null} 
+                    onChange={(lat, lng) => setFormData({...formData, latitude: lat.toString(), longitude: lng.toString()})} 
+                  />
+                </div>
                 <textarea placeholder="Description" className="md:col-span-2 h-24 rounded-xl border-none bg-porcelain p-3.5 text-sm ring-1 ring-inset ring-ink/10" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
                 <div className="md:col-span-2 flex justify-end gap-3 mt-2">
                   <button type="button" onClick={() => setIsAdding(false)} className="rounded-xl px-5 py-2.5 text-sm font-semibold text-ink/60 transition hover:bg-ink/5">Annuler</button>
@@ -324,6 +340,20 @@ export function AdminClient({ restaurants, users, initialQuestions }: { restaura
                             <option value="THREE_STARS">3 Étoiles</option>
                             <option value="GREEN_STAR">Étoile Verte</option>
                           </select>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col gap-1">
+                            <input placeholder="URL Image" className="w-full rounded bg-porcelain px-2 py-1.5 text-xs outline-none ring-1 ring-ink/20" value={editFormData.imageUrl || ""} onChange={e => setEditFormData({...editFormData, imageUrl: e.target.value})} />
+                            <div className="flex gap-1">
+                              <input type="number" step="any" placeholder="Lat" className="w-1/2 rounded bg-porcelain px-2 py-1.5 text-xs outline-none ring-1 ring-ink/20" value={editFormData.latitude || ""} onChange={e => setEditFormData({...editFormData, latitude: e.target.value})} />
+                              <input type="number" step="any" placeholder="Lng" className="w-1/2 rounded bg-porcelain px-2 py-1.5 text-xs outline-none ring-1 ring-ink/20" value={editFormData.longitude || ""} onChange={e => setEditFormData({...editFormData, longitude: e.target.value})} />
+                            </div>
+                            <MapPicker 
+                              lat={editFormData.latitude ? parseFloat(editFormData.latitude) : null} 
+                              lng={editFormData.longitude ? parseFloat(editFormData.longitude) : null} 
+                              onChange={(lat, lng) => setEditFormData({...editFormData, latitude: lat.toString(), longitude: lng.toString()})} 
+                            />
+                          </div>
                         </td>
                         <td className="px-6 py-4 text-right flex justify-end gap-3">
                           <button disabled={busy} onClick={() => handleUpdateRestaurant(r.id)} className="text-moss hover:text-moss/80"><Check size={18} /></button>
@@ -377,6 +407,7 @@ export function AdminClient({ restaurants, users, initialQuestions }: { restaura
                   <th className="px-6 py-4 cursor-pointer hover:bg-ink/5 transition" onClick={() => handleSort("createdAt")}>
                     <div className="flex items-center gap-2">Inscrit le <ArrowUpDown size={14} className="text-ink/30" /></div>
                   </th>
+                  <th className="px-6 py-4">Rôle</th>
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
@@ -390,6 +421,12 @@ export function AdminClient({ restaurants, users, initialQuestions }: { restaura
                         <td className="px-6 py-4"><input className="w-full rounded bg-porcelain px-2 py-1.5 outline-none ring-1 ring-ink/20" value={editFormData.name} onChange={e => setEditFormData({...editFormData, name: e.target.value})} /></td>
                         <td className="px-6 py-4"><input className="w-full rounded bg-porcelain px-2 py-1.5 outline-none ring-1 ring-ink/20" value={editFormData.username} onChange={e => setEditFormData({...editFormData, username: e.target.value})} /></td>
                         <td className="px-6 py-4">{new Date(u.createdAt).toLocaleDateString()}</td>
+                        <td className="px-6 py-4">
+                          <select className="w-full rounded bg-porcelain px-2 py-1.5 outline-none ring-1 ring-ink/20" value={editFormData.role} onChange={e => setEditFormData({...editFormData, role: e.target.value})}>
+                            <option value="USER">Utilisateur</option>
+                            <option value="ADMIN">Administrateur</option>
+                          </select>
+                        </td>
                         <td className="px-6 py-4 text-right flex justify-end gap-3">
                           <button disabled={busy} onClick={() => handleUpdateUser(u.id)} className="text-moss hover:text-moss/80"><Check size={18} /></button>
                           <button disabled={busy} onClick={() => setEditingUserId(null)} className="text-ink/60 hover:text-ink"><X size={18} /></button>
@@ -403,6 +440,13 @@ export function AdminClient({ restaurants, users, initialQuestions }: { restaura
                         </td>
                         <td className="px-6 py-4">{u.username}</td>
                         <td className="px-6 py-4">{new Date(u.createdAt).toLocaleDateString()}</td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                            u.role === "ADMIN" ? "bg-rouge/10 text-rouge" : "bg-ink/5 text-ink/70"
+                          }`}>
+                            {u.role}
+                          </span>
+                        </td>
                         <td className="px-6 py-4 flex justify-end gap-4">
                           <button disabled={busy} onClick={() => { setEditingUserId(u.id); setEditFormData(u); }} className="text-ink/40 hover:text-ink transition"><Pencil size={16} /></button>
                           <button disabled={busy} onClick={() => setDeletingUserId(u.id)} className="text-rouge/60 hover:text-[#9d2626] transition"><Trash2 size={16} /></button>

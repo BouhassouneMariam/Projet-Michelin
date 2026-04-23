@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
-import { getCurrentUserId } from "@/lib/auth";
+import { isAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { AdminClient } from "./AdminClient";
 
 export default async function AdminPage() {
-  const userId = getCurrentUserId();
-  if (!userId) redirect("/login");
+  const isUserAdmin = await isAdmin();
+  if (!isUserAdmin) redirect("/login");
 
   const [restaurants, users, initialQuestions] = await Promise.all([
     prisma.restaurant.findMany({ orderBy: { createdAt: "desc" } }),

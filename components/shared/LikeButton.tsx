@@ -2,25 +2,30 @@
 
 import { useState } from "react";
 import { Heart } from "lucide-react";
+import { useAuth } from "@/features/users/AuthProvider";
 
 export function LikeButton({
   restaurantId,
   initialLiked = false,
   initialCount = 0,
-  onAuthRequired,
-  isLogged =false
+  onAuthRequired
 }: {
   restaurantId: string;
   initialLiked?: boolean;
   initialCount?: number;
   onAuthRequired?: () => void;
-  isLogged: boolean;
 }) {
+  const { isAuthenticated } = useAuth();
   const [liked, setLiked] = useState(initialLiked);
   const [count, setCount] = useState(initialCount);
   const [busy, setBusy] = useState(false);
 
   async function toggle() {
+    if (!isAuthenticated) {
+      onAuthRequired?.();
+      return;
+    }
+
     if (busy) return;
     setBusy(true);
 
@@ -60,7 +65,7 @@ export function LikeButton({
         e.stopPropagation();
         toggle();
       }}
-      disabled={busy || !isLogged}
+      disabled={busy}
       className="group/like inline-flex items-center gap-1.5 text-sm font-semibold transition-colors"
       aria-label={liked ? "Retirer le like" : "Liker ce restaurant"}
     >

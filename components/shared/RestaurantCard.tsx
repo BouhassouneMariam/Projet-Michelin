@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { BookmarkPlus, Loader2, MapPin, Star } from "lucide-react";
+import { MapPin, Star } from "lucide-react";
 import { motion } from "framer-motion";
-import { AddToCollectionModal } from "@/components/collections/AddToCollectionModal";
+import { SaveButton } from "@/components/collections/SaveButton";
 import { LikeButton } from "@/components/shared/LikeButton";
 import type { RestaurantDto } from "@/types/api";
 
@@ -17,11 +17,8 @@ export function RestaurantCard({
   compact?: boolean;
   initialLiked?: boolean;
 }) {
-  const [collectionModalOpen, setCollectionModalOpen] = useState(false);
   const [authPromptVisible, setAuthPromptVisible] = useState(false);
-  const [checkingCollections, setCheckingCollections] = useState(false);
   const promptTimerRef = useRef<number | null>(null);
-  const [isLogged,setIsLogged] =useState<boolean>(false);
 
   useEffect(() => {
     return () => {
@@ -31,26 +28,6 @@ export function RestaurantCard({
     };
   }, []);
 
-  useEffect(() => {
-    async function checkAuth() {
-      try {
-        const response = await fetch("/api/collections");
-
-        if (response.status === 401) {
-          setIsLogged(false);
-          return;
-        }
-
-        if (response.ok) {
-          setIsLogged(true);
-        }
-      } catch {
-        setIsLogged(false);
-      }
-    }
-
-    checkAuth();
-  }, []);
   function showAuthPrompt() {
     setAuthPromptVisible(true);
 
@@ -61,31 +38,6 @@ export function RestaurantCard({
     promptTimerRef.current = window.setTimeout(() => {
       setAuthPromptVisible(false);
     }, 3600);
-  }
-
-  async function openCollectionModal() {
-    if (checkingCollections) {
-      return;
-    }
-
-    setCheckingCollections(true);
-
-    try {
-      const response = await fetch("/api/collections");
-
-      if (response.status === 401) {
-        showAuthPrompt();
-        return;
-      }
-
-      if (response.ok) {
-        setCollectionModalOpen(true);
-      }
-    } catch {
-      showAuthPrompt();
-    } finally {
-      setCheckingCollections(false);
-    }
   }
 
   return (
@@ -154,20 +106,8 @@ export function RestaurantCard({
             initialLiked={initialLiked}
             initialCount={restaurant.likesCount}
             onAuthRequired={showAuthPrompt}
-            isLogged={isLogged}
           />
-          {isLogged &&<button
-            onClick={openCollectionModal}
-            disabled={checkingCollections}
-            className="inline-flex h-10 items-center gap-2 rounded-lg bg-rouge px-3 text-sm font-semibold text-white transition hover:bg-[#9d2626] disabled:opacity-70"
-          >
-            {checkingCollections ? (
-              <Loader2 size={16} className="animate-spin" />
-            ) : (
-              <BookmarkPlus size={16} />
-            )}
-            Save
-          </button>}
+          <SaveButton restaurantId={restaurant.id} onAuthRequired={showAuthPrompt} />
         </div>
       </div>
 
@@ -184,11 +124,6 @@ export function RestaurantCard({
         </div>
       ) : null}
 
-       <AddToCollectionModal
-        restaurantId={restaurant.id}
-        open={collectionModalOpen}
-        onClose={() => setCollectionModalOpen(false)}
-      />
     </motion.article>
   );
 }

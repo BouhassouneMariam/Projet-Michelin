@@ -1,13 +1,17 @@
 "use client";
 
 import { LogOut } from "lucide-react";
+import { useAuth } from "@/features/users/AuthProvider";
 
 export function LogoutButton() {
+  const { setUnauthenticated } = useAuth();
+
   async function handleLogout() {
     await fetch("/api/auth/logout", {
       method: "POST"
     });
 
+    setUnauthenticated();
     window.location.assign("/");
   }
 
