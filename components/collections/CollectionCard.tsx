@@ -69,15 +69,8 @@ export function CollectionCard({
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {collection.owner.avatarUrl && (
-                <img
-                  src={collection.owner.avatarUrl}
-                  alt=""
-                  className="h-6 w-6 rounded-full object-cover ring-2 ring-white"
-                />
-              )}
               <span className="text-xs font-medium text-ink/50">
-                @{collection.owner.username}
+                Par {collection.owner.name}
               </span>
             </div>
 
