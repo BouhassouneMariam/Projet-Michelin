@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { MapPin, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { SaveButton } from "@/components/collections/SaveButton";
 import { LikeButton } from "@/components/shared/LikeButton";
+import { cn } from "@/lib/cn";
 import type { RestaurantDto } from "@/types/api";
 
 export function RestaurantCard({
@@ -48,13 +50,14 @@ export function RestaurantCard({
       className="relative overflow-hidden rounded-lg border border-ink/10 bg-white/70 shadow-sm backdrop-blur"
     >
       <Link href={`/restaurants/${restaurant.id}`} className="block">
-        <div className={compact ? "h-44" : "h-56"}>
+        <div className={cn("relative", compact ? "h-44" : "h-56")}>
           {restaurant.imageUrl ? (
-            <img
+            <Image
               src={restaurant.imageUrl}
-              alt=""
-              className="h-full w-full object-cover"
-              loading="lazy"
+              alt={restaurant.name}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           ) : (
             <div className="h-full w-full bg-champagne" />
