@@ -549,31 +549,38 @@ export function NarrativeFilter({
                       </div>
 
                       <div className="mt-6">
-                        <input
-                          type="range"
-                          min={0}
-                          max={Math.max(0, sliderOptions.length - 1)}
-                          value={Math.max(0, selectedBudgetIndex)}
-                          onChange={(event) => {
-                            const nextIndex = Number(event.target.value);
-                            const option = sliderOptions[nextIndex];
-                            if (option) {
-                              setAnswers({
-                                ...answers,
-                                [currentQuestion.key]: option.value
-                              });
-                            }
-                          }}
-                          className="w-full accent-rouge"
-                        />
+                        <div className="relative px-1 py-4">
+                          <input
+                            type="range"
+                            min={0}
+                            max={Math.max(0, sliderOptions.length - 1)}
+                            value={Math.max(0, selectedBudgetIndex)}
+                            onChange={(event) => {
+                              const nextIndex = Number(event.target.value);
+                              const option = sliderOptions[nextIndex];
+                              if (option) {
+                                setAnswers({
+                                  ...answers,
+                                  [currentQuestion.key]: option.value
+                                });
+                              }
+                            }}
+                            className="w-full cursor-pointer accent-rouge"
+                          />
+                        </div>
 
-                        <div className="mt-4 grid grid-cols-3 gap-3 text-center text-xs font-semibold uppercase tracking-[0.18em] text-[#757575]">
+                        <div className={cn(
+                          "mt-6 gap-3 text-center text-xs font-semibold uppercase tracking-[0.18em]",
+                          sliderOptions.length === 3 ? "grid grid-cols-3" : "grid grid-cols-2"
+                        )}>
                           {sliderOptions.map((option, index) => (
                             <span
                               key={option.value}
                               className={cn(
-                                "block rounded-xl px-2 py-2 transition",
-                                index === selectedBudgetIndex && "bg-rouge/10 text-rouge"
+                                "block rounded-lg px-3 py-3 transition duration-200",
+                                index === selectedBudgetIndex 
+                                  ? "bg-rouge text-white font-bold shadow-md"
+                                  : "bg-[#F5F5F5] text-[#757575] hover:bg-[#EEEEEE]"
                               )}
                             >
                               {option.label}
