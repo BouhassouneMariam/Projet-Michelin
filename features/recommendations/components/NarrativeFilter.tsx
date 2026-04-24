@@ -90,6 +90,7 @@ type NarrativeFilterProps = {
 };
 
 const PAGE_TRANSITION_DURATION_MS = 340;
+const PRIMARY_BUDGET_VALUES = new Set(["LOW", "MEDIUM", "HIGH"]);
 
 function getCuisineSubcategoryOptions(category?: string): Option[] {
   if (category === "asian") {
@@ -219,7 +220,11 @@ export function NarrativeFilter({
   const currentOptions: Option[] =
     currentQuestion.key === "cuisineSubcategory"
       ? getCuisineSubcategoryOptions(answers.cuisineCategory)
-      : currentQuestion.options || [];
+      : currentQuestion.key === "budget"
+        ? (currentQuestion.options || []).filter((option) =>
+            PRIMARY_BUDGET_VALUES.has(option.value)
+          )
+        : currentQuestion.options || [];
   const sliderOptions = currentOptions;
   const selectedBudgetValue = answers[currentQuestion.key] || sliderOptions[0]?.value;
   const selectedBudgetIndex = sliderOptions.findIndex(
