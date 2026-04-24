@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowLeft,
   Armchair,
@@ -8,12 +8,17 @@ import {
   CircleDollarSign,
   Flame,
   Gem,
+  Globe,
   Heart,
+  Leaf,
   Loader2,
   MapPin,
+  Shield,
   Sparkles,
+  Star,
   Utensils,
   Users,
+  Wheat,
   Search,
   Settings,
   HelpCircle
@@ -35,6 +40,11 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Gem,
   CircleDollarSign,
   MapPin,
+  Globe,
+  Leaf,
+  Shield,
+  Star,
+  Wheat,
   Search,
   Settings,
   HelpCircle
@@ -62,6 +72,7 @@ type Question = {
   label: string;
   question: string;
   intro: string;
+  type?: string;
   options: Option[];
 };
 
@@ -80,14 +91,42 @@ type NarrativeFilterProps = {
 
 const PAGE_TRANSITION_DURATION_MS = 340;
 
+function getCuisineSubcategoryOptions(category?: string): Option[] {
+  if (category === "asian") {
+    return [
+      { value: "korean", label: "Coréen" },
+      { value: "japanese", label: "Japon" },
+      { value: "indian", label: "Indien" }
+    ];
+  }
+
+  if (category === "european") {
+    return [
+      { value: "french", label: "Français" },
+      { value: "spanish", label: "Espagnol" },
+      { value: "italian", label: "Italien" }
+    ];
+  }
+
+  if (category === "african") {
+    return [
+      { value: "moroccan", label: "Marocain" },
+      { value: "egyptian", label: "Égypte" },
+      { value: "lebanese", label: "Libanais" }
+    ];
+  }
+
+  return [];
+}
+
 function buildPayload(answers: Answers, questions: any[]) {
-  // We collect everything. 
+  // We collect everything.
   // Backend expects: occasion, vibes (array), budget, city
   const payload: any = {
     vibes: []
   };
 
-  questions.forEach(q => {
+  questions.forEach((q) => {
     const val = answers[q.key];
     if (!val) return;
 
@@ -95,8 +134,17 @@ function buildPayload(answers: Answers, questions: any[]) {
     else if (q.key === "budget") payload.budget = val;
     else if (q.key === "city") payload.city = val;
     else if (q.key === "vibe" || q.key === "vibes") payload.vibes.push(val);
-    else {
-      // Any other dynamic question added by user is added as a vibe tag
+    else if (
+      q.key === "award" ||
+      q.key === "dietaryType" ||
+      q.key === "cuisineCategory" ||
+      q.key === "cuisineSubcategory" ||
+      q.key === "distance"
+    ) {
+      payload.vibes.push(val);
+    } else if (q.key === "dietary" && val === "yes") {
+      payload.vibes.push("dietary");
+    } else {
       payload.vibes.push(val);
     }
   });
@@ -137,8 +185,39 @@ export function NarrativeFilter({
     );
   }
 
-  const currentQuestion = activeQuestions[step] || activeQuestions[0];
-  const progress = ((step + 1) / activeQuestions.length) * 100;
+  const visibleQuestions = activeQuestions.filter((question) => {
+    if (question.key === "dietaryType") {
+      return answers.dietary === "yes";
+    }
+
+    if (question.key === "cuisineSubcategory") {
+      return ["asian", "european", "african"].includes(answers.cuisineCategory);
+    }
+
+    return true;
+  });
+
+  const questionCount = visibleQuestions.length;
+
+  useEffect(() => {
+    if (step >= questionCount) {
+      setStep(Math.max(questionCount - 1, 0));
+    }
+  }, [questionCount, step]);
+
+  const currentStep = Math.min(step, Math.max(questionCount - 1, 0));
+  const currentQuestion = visibleQuestions[currentStep] || visibleQuestions[0];
+  const progress = ((currentStep + 1) / questionCount) * 100;
+
+  const isSliderQuestion = currentQuestion.key === "budget" || currentQuestion.key === "distance";
+  const currentOptions =
+    currentQuestion.key === "cuisineSubcategory"
+      ? getCuisineSubcategoryOptions(answers.cuisineCategory)
+      : currentQuestion.options || [];
+  const sliderOptions = currentOptions;
+  const selectedBudgetValue = answers[currentQuestion.key] || sliderOptions[0]?.value;
+  const selectedBudgetIndex = sliderOptions.findIndex((option) => option.value === selectedBudgetValue);
+  const selectedBudgetOption = sliderOptions[selectedBudgetIndex] || sliderOptions[0];
 
   async function runRecommendation(nextAnswers: Answers) {
     setLoading(true);
@@ -192,12 +271,13 @@ export function NarrativeFilter({
     setTurning(true);
 
     window.setTimeout(() => {
-      if (step === activeQuestions.length - 1) {
+      const nextStep = currentStep + 1;
+      if (nextStep >= questionCount) {
         void runRecommendation(nextAnswers);
         return;
       }
 
-      setStep((current) => current + 1);
+      setStep(nextStep);
       setTurning(false);
     }, PAGE_TRANSITION_DURATION_MS);
   }
@@ -211,7 +291,7 @@ export function NarrativeFilter({
       setFinished(false);
       setRestaurants([]);
       setError(null);
-      setStep(activeQuestions.length - 1);
+      setStep(questionCount - 1);
       onRecommendationsReset?.();
       return;
     }
@@ -405,7 +485,7 @@ export function NarrativeFilter({
                 Vos choix
               </span>
               <span className="text-[10px] font-semibold uppercase tracking-[0.24em] text-rouge">
-                {finished ? "Resultat" : `${currentQuestion.options?.length || 0} options`}
+                {finished ? "Resultat" : `${currentOptions.length || 0} options`}
               </span>
             </div>
 
@@ -440,8 +520,76 @@ export function NarrativeFilter({
                       Recommencer
                     </Button>
                   </div>
+                ) : isSliderQuestion ? (
+                  <div className="space-y-6">
+                    <div className="rounded-3xl border border-[#DDDDDD] bg-white p-6 shadow-sm">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#757575]">
+                            Budget actuel
+                          </p>
+                          <p className="mt-2 text-xl font-semibold text-ink">
+                            {selectedBudgetOption?.label}
+                          </p>
+                          <p className="mt-1 text-sm leading-6 text-[#757575]">
+                            {selectedBudgetOption?.description}
+                          </p>
+                        </div>
+                        <div className="text-sm font-semibold text-[#999999]">
+                          {selectedBudgetIndex + 1}/{sliderOptions.length}
+                        </div>
+                      </div>
+
+                      <div className="mt-6">
+                        <input
+                          type="range"
+                          min={0}
+                          max={Math.max(0, sliderOptions.length - 1)}
+                          value={Math.max(0, selectedBudgetIndex)}
+                          onChange={(event) => {
+                            const nextIndex = Number(event.target.value);
+                            const option = sliderOptions[nextIndex];
+                            if (option) {
+                              setAnswers({
+                                ...answers,
+                                [currentQuestion.key]: option.value
+                              });
+                            }
+                          }}
+                          className="w-full accent-rouge"
+                        />
+
+                        <div className="mt-4 grid grid-cols-3 gap-3 text-center text-xs font-semibold uppercase tracking-[0.18em] text-[#757575]">
+                          {sliderOptions.map((option, index) => (
+                            <span
+                              key={option.value}
+                              className={cn(
+                                "block rounded-xl px-2 py-2 transition",
+                                index === selectedBudgetIndex && "bg-rouge/10 text-rouge"
+                              )}
+                            >
+                              {option.label}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        if (selectedBudgetOption) {
+                          choose(selectedBudgetOption);
+                        }
+                      }}
+                      disabled={turning || loading}
+                      className="w-full"
+                    >
+                      Valider le budget
+                    </Button>
+                  </div>
                 ) : (
-                  currentQuestion.options?.map((option: any, index: number) => {
+                  currentOptions.map((option: any, index: number) => {
                     const Icon = getIcon(option.iconName);
                     const selected =
                       answers[currentQuestion.key] === option.value;
