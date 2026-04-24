@@ -8,7 +8,7 @@ const PRECACHE_URLS = [
   "/icons/pwa-192.png",
   "/icons/pwa-512.png",
   "/icons/apple-touch-icon.png",
-  "/icons/maskable-icon.svg",
+  "/icons/maskable-icon.png",
   "/icons/Etoile_Michelin-1.png",
   "/splash/apple-splash-1170x2532.png",
   "/splash/apple-splash-1290x2796.png",
