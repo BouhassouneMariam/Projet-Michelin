@@ -16,13 +16,12 @@ export const seedQuestions = [
     key: "budget",
     label: "Budget",
     question: "Tu veux dépenser plutôt…",
-    intro: "SLIDER PRIX",
+    intro: "Glisse pour ajuster votre gamme de prix.",
     order: 1,
     options: [
-      { value: "LOW", label: "Pas trop", description: "Une sortie économique et maîtrisée.", iconName: "CircleDollarSign" },
-      { value: "MEDIUM", label: "Moyen", description: "Un excellent compromis qualité/prix.", iconName: "CircleDollarSign" },
-      { value: "HIGH", label: "Élevé", description: "Pour se faire plaisir dans un bel endroit.", iconName: "CircleDollarSign" },
-      { value: "ANY", label: "Peu importe", description: "L'essentiel est l'expérience, pas le prix.", iconName: "CircleDollarSign" }
+      { value: "LOW", label: "Pas trop", description: "Accès facile, bon rapport qualité-prix.", iconName: "CircleDollarSign" },
+      { value: "MEDIUM", label: "Moyen", description: "Qualité premium, sans excès.", iconName: "CircleDollarSign" },
+      { value: "HIGH", label: "Élevé", description: "L'expérience prime sur le prix.", iconName: "CircleDollarSign" }
     ]
   },
   {
@@ -33,8 +32,8 @@ export const seedQuestions = [
     order: 2,
     options: [
       { value: "NONE", label: "Pas d’étoile", description: "Une table sans contrainte Michelin.", iconName: "Sparkles" },
-      { value: "ONE_STAR", label: "1 étoile", description: "Une expérience raffinée et accessible.", iconName: "Gem" },
-      { value: "TWO_STARS", label: "2 étoiles", description: "Un moment culinaire affirmé.", iconName: "Gem" },
+      { value: "ONE_STAR", label: "1 étoile", description: "Une expérience raffinée et accessible.", iconName: "star" },
+      { value: "TWO_STARS", label: "2 étoiles", description: "Un moment culinaire affirmé.", iconName: "star" },
       { value: "THREE_STARS", label: "3 étoiles", description: "La table d'exception Michelin.", iconName: "Star" }
     ]
   },
