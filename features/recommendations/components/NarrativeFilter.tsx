@@ -81,7 +81,7 @@ type Answers = Record<QuestionKey, string>;
 type NarrativeFilterProps = {
   immersive?: boolean;
   embedded?: boolean;
-  initialQuestions?: any[];
+  initialQuestions?: Question[];
   onRecommendationsReady?: (payload: {
     title: string;
     restaurants: RestaurantDto[];
@@ -119,10 +119,15 @@ function getCuisineSubcategoryOptions(category?: string): Option[] {
   return [];
 }
 
-function buildPayload(answers: Answers, questions: any[]) {
+function buildPayload(answers: Answers, questions: Question[]) {
   // We collect everything.
   // Backend expects: occasion, vibes (array), budget, city
-  const payload: any = {
+  const payload: {
+    occasion?: string;
+    budget?: string;
+    city?: string;
+    vibes: string[];
+  } = {
     vibes: []
   };
 
@@ -175,7 +180,8 @@ export function NarrativeFilter({
   const [error, setError] = useState<string | null>(null);
 
   // Use DB questions if available, otherwise we'll have a blank book or we can fallback
-  const activeQuestions = initialQuestions && initialQuestions.length > 0 ? initialQuestions : [];
+  const activeQuestions: Question[] =
+    initialQuestions && initialQuestions.length > 0 ? initialQuestions : [];
 
   if (activeQuestions.length === 0) {
     return (
@@ -210,13 +216,15 @@ export function NarrativeFilter({
   const progress = ((currentStep + 1) / questionCount) * 100;
 
   const isSliderQuestion = currentQuestion.key === "budget" || currentQuestion.key === "distance";
-  const currentOptions =
+  const currentOptions: Option[] =
     currentQuestion.key === "cuisineSubcategory"
       ? getCuisineSubcategoryOptions(answers.cuisineCategory)
       : currentQuestion.options || [];
   const sliderOptions = currentOptions;
   const selectedBudgetValue = answers[currentQuestion.key] || sliderOptions[0]?.value;
-  const selectedBudgetIndex = sliderOptions.findIndex((option) => option.value === selectedBudgetValue);
+  const selectedBudgetIndex = sliderOptions.findIndex(
+    (option: Option) => option.value === selectedBudgetValue
+  );
   const selectedBudgetOption = sliderOptions[selectedBudgetIndex] || sliderOptions[0];
 
   async function runRecommendation(nextAnswers: Answers) {
